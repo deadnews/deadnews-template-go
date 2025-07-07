@@ -1,9 +1,9 @@
-.PHONY: all clean default run build update checks pc test integr
+.PHONY: all clean default run build update check pc test integr
 
-default: checks
+default: check
 
 run:
-	go run ./cmd/template-go
+	SERVICE_DSN=test go run ./cmd/template-go
 
 build:
 	go build -o ./dist/ ./...
@@ -16,7 +16,7 @@ update:
 	go mod tidy
 	go mod verify
 
-checks: pc test
+check: pc test
 pc:
 	pre-commit run -a
 test:
@@ -29,7 +29,7 @@ bumped:
 	git cliff --bumped-version
 
 # make release TAG=$(git cliff --bumped-version)-alpha.0
-release: checks
+release: check
 	git cliff -o CHANGELOG.md --tag $(TAG)
 	pre-commit run --files CHANGELOG.md || pre-commit run --files CHANGELOG.md
 	git add CHANGELOG.md

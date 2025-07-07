@@ -3,13 +3,17 @@ version: "2"
 linters:
   default: none
   enable:
+    - asasalint
+    - asciicheck
     - bidichk
     - bodyclose
     - copyloopvar
     - decorder
     - dogsled
     - dupl
+    - durationcheck
     - errcheck
+    - errname
     - errorlint
     - exhaustive
     - fatcontext
@@ -35,8 +39,10 @@ linters:
     - revive
     - rowserrcheck
     - sloglint
+    - sqlclosecheck
     - staticcheck
     - testifylint
+    - tparallel
     - unconvert
     - unparam
     - unused
