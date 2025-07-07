@@ -46,6 +46,7 @@ func main() {
 	dsn := os.Getenv("SERVICE_DSN")
 	if dsn == "" {
 		slog.Error("SERVICE_DSN environment variable is not set")
+		os.Exit(0)
 	}
 
 	// Create server

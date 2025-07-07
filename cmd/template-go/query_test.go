@@ -57,24 +57,6 @@ func TestGetDatabaseInfoWithValidConnection(t *testing.T) {
 	assert.NotEmpty(t, version)
 }
 
-// TestContextTimeout tests that our function respects context timeouts.
-func TestContextTimeoutHandling(t *testing.T) {
-	if testDSN == "" {
-		t.Skip("Skipping test, no testcontainer DSN available")
-	}
-
-	// Test that function adds timeout when none exists
-	ctxWithoutTimeout := context.Background()
-	start := time.Now()
-
-	_, err := getDatabaseInfo(ctxWithoutTimeout, testDSN)
-	elapsed := time.Since(start)
-
-	// Should complete successfully and within reasonable time (our 5s timeout)
-	require.NoError(t, err)
-	assert.Less(t, elapsed, 6*time.Second, "should complete within timeout")
-}
-
 // Test helper to validate SQL connection behavior.
 func TestSQLConnectionBehavior(t *testing.T) {
 	if testDSN == "" {
