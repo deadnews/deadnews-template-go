@@ -13,7 +13,7 @@ services:
       SERVICE_DSN: postgres://postgres:postgres@postgres:5432/postgres
 
   postgres:
-    image: postgres@sha256:feff5b24fedd610975a1f5e743c51a4b360437f4dc3a11acf740dcd708f413f6
+    image: postgres@sha256:073e7c8b84e2197f94c8083634640ab37105effe1bc853ca4d5fbece3219b0e8
     healthcheck:
       test: [CMD, pg_isready, -U, postgres]
       interval: 1m
