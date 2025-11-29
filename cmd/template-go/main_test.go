@@ -35,7 +35,7 @@ func TestMain(m *testing.M) {
 
 	// Create container request
 	req := testcontainers.ContainerRequest{
-		Image:        "postgres:17",
+		Image:        "postgres:17-alpine",
 		ExposedPorts: []string{"5432/tcp"},
 		Env: map[string]string{
 			"POSTGRES_DB":       "testdb",
