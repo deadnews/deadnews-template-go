@@ -1,12 +1,5 @@
-ci:
-  autofix_commit_msg: "chore: auto fixes from `pre-commit` hooks"
-  autoupdate_commit_msg: "chore(pre-commit): autoupdate"
-  autoupdate_schedule: quarterly
-  skip: [golangci-lint-full]
-
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+  - repo: builtin
     hooks:
       - id: check-added-large-files
       - id: check-merge-conflict
