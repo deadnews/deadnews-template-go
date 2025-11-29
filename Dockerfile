@@ -1,4 +1,4 @@
-FROM golang:1.25.3-alpine@sha256:aee43c3ccbf24fdffb7295693b6e33b21e01baec1b2a55acc351fde345e9ec34 AS builder
+FROM golang:1.25.4-alpine@sha256:d3f0cf7723f3429e3f9ed846243970b20a2de7bae6a5b66fc5914e228d831bbb AS builder
 
 ENV GOCACHE="/cache/go-build" \
     # Disable CGO to build a static binary
@@ -14,6 +14,8 @@ FROM gcr.io/distroless/static-debian12@sha256:87bce11be0af225e4ca761c40babb06d6d
 LABEL maintainer="deadnews <deadnewsgit@gmail.com>"
 
 ENV SERVICE_PORT=8000
+
+COPY --from=ghcr.io/tarampampam/microcheck:1.2.0@sha256:42cdee55eddc4c5b5bd76cb6df5334ca22ce7dc21066aeea7d059898ffbf84fd /bin/httpcheck /bin/httpcheck
 
 COPY --from=builder /app/dist/template-go /bin/template-go
 

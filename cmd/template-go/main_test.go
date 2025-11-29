@@ -134,7 +134,7 @@ func TestMakeDatabaseTestHandler_Success(t *testing.T) {
 	}
 
 	handler := handleDatabaseTest(testDSN)
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
@@ -143,7 +143,7 @@ func TestMakeDatabaseTestHandler_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Contains(t, rr.Header().Get("Content-Type"), "application/json")
 
-	var response map[string]interface{}
+	var response map[string]any
 	err = json.NewDecoder(rr.Body).Decode(&response)
 	require.NoError(t, err)
 
@@ -162,7 +162,7 @@ func TestMakeDatabaseTestHandler_Success(t *testing.T) {
 
 func TestMakeDatabaseTestHandler_Error(t *testing.T) {
 	handler := handleDatabaseTest("invalid-dsn")
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
@@ -182,7 +182,7 @@ func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 	defer ts.Close()
 
 	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/test", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/test", http.NoBody)
 	require.NoError(t, err)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -192,7 +192,7 @@ func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Contains(t, resp.Header.Get("Content-Type"), "application/json")
 
-	var response map[string]interface{}
+	var response map[string]any
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	require.NoError(t, err)
 	assert.Contains(t, response, "database")
@@ -205,7 +205,7 @@ func TestHandleDatabaseTest_ViaServer_Error(t *testing.T) {
 	defer ts.Close()
 
 	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/test", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/test", http.NoBody)
 	require.NoError(t, err)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -221,7 +221,7 @@ func TestHealthEndpoint(t *testing.T) {
 	defer ts.Close()
 
 	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/health", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/health", http.NoBody)
 	require.NoError(t, err)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -242,7 +242,7 @@ func TestMakeDatabaseTestHandler_JSONError(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		// This will succeed
 		// Add a channel to the response to force JSON encoding error
-		response := map[string]interface{}{
+		response := map[string]any{
 			"bad": make(chan int),
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -250,7 +250,7 @@ func TestMakeDatabaseTestHandler_JSONError(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(response)
 	})
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
@@ -284,7 +284,7 @@ func TestMakeDatabaseTestHandler_ContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/test", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/test", http.NoBody)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
@@ -299,7 +299,7 @@ func TestSetupServer_MiddlewareConfiguration(t *testing.T) {
 	server := setupServer(":8080", "test-dsn")
 
 	// Test that heartbeat endpoint is configured
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/health", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/health", http.NoBody)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
@@ -313,7 +313,7 @@ func TestSetupServer_RoutingConfiguration(t *testing.T) {
 	server := setupServer(":8080", "invalid-dsn")
 
 	// Test that /test endpoint exists and returns error for invalid DSN
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
@@ -326,7 +326,7 @@ func TestSetupServer_RoutingConfiguration(t *testing.T) {
 func TestSetupServer_NonExistentRoute(t *testing.T) {
 	server := setupServer(":8080", "test-dsn")
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/nonexistent", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/nonexistent", http.NoBody)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()

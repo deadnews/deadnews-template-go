@@ -12,13 +12,14 @@ goreleaser:
 	goreleaser --clean --snapshot --skip=publish
 
 update:
-	go get -u ./...
+	go get -u -t ./...
 	go mod tidy
 	go mod verify
+	prek auto-update
 
 check: pc test
 pc:
-	pre-commit run -a
+	prek run -a
 test:
 	go test -v -race -covermode=atomic -coverprofile='coverage.txt' ./...
 
@@ -31,7 +32,7 @@ bumped:
 # make release TAG=$(git cliff --bumped-version)-alpha.0
 release: check
 	git cliff -o CHANGELOG.md --tag $(TAG)
-	pre-commit run --files CHANGELOG.md || pre-commit run --files CHANGELOG.md
+	prek run --files CHANGELOG.md || prek run --files CHANGELOG.md
 	git add CHANGELOG.md
 	git commit -m "chore(release): prepare for $(TAG)"
 	git push

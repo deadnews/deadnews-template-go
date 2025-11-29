@@ -4,8 +4,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"flag"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -21,20 +19,6 @@ import (
 func main() {
 	// Setup structured logging
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, nil)))
-
-	// Parse command-line flags
-	healthcheckURL := flag.String("healthcheck", "", "Perform a health check against the given URL and exit")
-	flag.Parse()
-
-	// Handle health check mode
-	if *healthcheckURL != "" {
-		if err := healthCheck(*healthcheckURL); err != nil {
-			fmt.Fprintf(os.Stderr, "Health check failed: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Println("Health check succeeded")
-		os.Exit(0)
-	}
 
 	// Get port from environment
 	port := os.Getenv("SERVICE_PORT")
