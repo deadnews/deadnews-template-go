@@ -5,13 +5,11 @@
     {
       "customType": "regex",
       "datasourceTemplate": "docker",
-      "description": "Testcontainers: detect Docker images",
-      "fileMatch": ["main_test.go$"],
-      "groupName": "docker tags",
+      "description": "Testcontainers: detect docker images",
+      "managerFilePatterns": ["/main_test.go$/"],
       "matchStrings": [
         "Image:\\s*\"(?<depName>[\\w\\-/]+):(?<currentValue>[\\w\\.\\-]+)\""
       ],
-      "semanticCommitType": "test",
       "versioningTemplate": "docker"
     }
   ]
