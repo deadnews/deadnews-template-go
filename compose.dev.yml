@@ -14,7 +14,7 @@ services:
       timeout: 10s
       start_period: 1m
     ports:
-      - 127.0.0.1:8001:8000/tcp
+      - 127.0.0.1:8000:8000/tcp
     environment:
       SERVICE_DSN: postgres://postgres:postgres@postgres:5432/postgres
 
