@@ -1,4 +1,16 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", "github>deadnews/renovate-config"]
+  "extends": ["config:recommended", "github>deadnews/renovate-config"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "datasourceTemplate": "docker",
+      "description": "Testcontainers: detect docker images",
+      "managerFilePatterns": ["/main_test.go$/"],
+      "matchStrings": [
+        "Image:\\s*\"(?<depName>[\\w\\-/]+):(?<currentValue>[\\w\\.\\-]+)\""
+      ],
+      "versioningTemplate": "docker"
+    }
+  ]
 }

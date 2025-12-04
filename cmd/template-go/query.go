@@ -9,7 +9,7 @@ import (
 )
 
 // getDatabaseInfo connects to the database and returns current database name and version.
-func getDatabaseInfo(ctx context.Context, dsn string) (map[string]interface{}, error) {
+func getDatabaseInfo(ctx context.Context, dsn string) (map[string]any, error) {
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
@@ -34,7 +34,7 @@ func getDatabaseInfo(ctx context.Context, dsn string) (map[string]interface{}, e
 		return nil, fmt.Errorf("failed to get database version: %w", err)
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"database": dbName,
 		"version":  version,
 	}, nil

@@ -1,8 +1,14 @@
 services:
   template-go:
     build: .
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges]
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
-      test: [CMD, /bin/template-go, --healthcheck, http://127.0.0.1:8000/health]
+      test: [CMD, /bin/httpcheck, http://127.0.0.1:8000/health]
       interval: 1m
       retries: 3
       timeout: 10s
@@ -13,7 +19,7 @@ services:
       SERVICE_DSN: postgres://postgres:postgres@postgres:5432/postgres
 
   postgres:
-    image: postgres@sha256:073e7c8b84e2197f94c8083634640ab37105effe1bc853ca4d5fbece3219b0e8
+    image: postgres:18-alpine
     healthcheck:
       test: [CMD, pg_isready, -U, postgres]
       interval: 1m

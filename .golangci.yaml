@@ -13,10 +13,13 @@ linters:
     - dupl
     - durationcheck
     - errcheck
+    - errchkjson
     - errname
     - errorlint
     - exhaustive
+    - exptostd
     - fatcontext
+    - forcetypeassert
     - funlen
     - gochecknoinits
     - goconst
@@ -26,16 +29,26 @@ linters:
     - goprintffuncname
     - gosec
     - govet
+    - iface
     - ineffassign
     - intrange
+    - loggercheck
+    - makezero
+    - mirror
     - misspell
+    - modernize
+    - musttag
     - nakedret
+    - nestif
+    - nilerr
+    - nilnil
     - noctx
     - nolintlint
     - perfsprint
     - prealloc
     - predeclared
     - promlinter
+    - recvcheck
     - revive
     - rowserrcheck
     - sloglint
@@ -46,8 +59,16 @@ linters:
     - unconvert
     - unparam
     - unused
+    - usestdlibvars
+    - usetesting
     - wastedassign
     - whitespace
+    - wrapcheck
+  settings:
+    gocritic:
+      enable-all: true
+      disabled-checks:
+        - paramTypeCombine
   exclusions:
     rules:
       # Exclude defer statements from errcheck checks.
@@ -57,6 +78,7 @@ linters:
       # Exclude some linters from running on tests files.
       - path: _test\.go
         linters:
+          - errchkjson
           - funlen
           - goconst
 
