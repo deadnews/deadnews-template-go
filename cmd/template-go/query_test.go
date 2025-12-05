@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"database/sql"
+	"os"
 	"testing"
 	"time"
 
@@ -10,15 +10,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetDatabaseInfoWithInvalidDSN(t *testing.T) {
+func TestGetDatabaseInfoWithNilDB(t *testing.T) {
+	// Save and restore db
+	savedDB := db
+	db = nil
+	defer func() { db = savedDB }()
+
 	ctx := context.Background()
-	_, err := getDatabaseInfo(ctx, "invalid-dsn")
+	_, err := getDatabaseInfo(ctx)
 	require.Error(t, err)
-	// The pgx driver may parse some invalid DSNs and fail on connection instead
-	require.Error(t, err, "Should return an error for invalid DSN")
+	require.Contains(t, err.Error(), "database not initialized")
 }
 
 func TestGetDatabaseInfoWithTimeout(t *testing.T) {
+	if os.Getenv("TESTCONTAINERS") != "1" {
+		t.Skip("Skipping integration test, set TESTCONTAINERS=1 to run it.")
+	}
+
 	// Create a context with a very short timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
 	defer cancel()
@@ -26,21 +34,20 @@ func TestGetDatabaseInfoWithTimeout(t *testing.T) {
 	// Wait for the context to be cancelled
 	time.Sleep(1 * time.Millisecond)
 
-	dsn := "postgres://user:pass@127.0.0.1:5432/db?sslmode=disable"
-	_, err := getDatabaseInfo(ctx, dsn)
+	_, err := getDatabaseInfo(ctx)
 	require.Error(t, err)
 }
 
 func TestGetDatabaseInfoWithValidConnection(t *testing.T) {
 	// This test uses the real container setup
-	if testDSN == "" {
-		t.Skip("Skipping test, no testcontainer DSN available")
+	if os.Getenv("TESTCONTAINERS") != "1" {
+		t.Skip("Skipping integration test, set TESTCONTAINERS=1 to run it.")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	dbInfo, err := getDatabaseInfo(ctx, testDSN)
+	dbInfo, err := getDatabaseInfo(ctx)
 	require.NoError(t, err)
 
 	// Verify all expected fields are present
@@ -57,21 +64,17 @@ func TestGetDatabaseInfoWithValidConnection(t *testing.T) {
 	assert.NotEmpty(t, version)
 }
 
-// Test helper to validate SQL connection behavior.
-func TestSQLConnectionBehavior(t *testing.T) {
-	if testDSN == "" {
-		t.Skip("Skipping test, no testcontainer DSN available")
-	}
+func TestInitDBWithInvalidDSN(t *testing.T) {
+	err := InitDB("invalid-dsn")
+	require.Error(t, err)
+}
 
-	// Test that sql.Open doesn't actually connect
-	db, err := sql.Open("pgx", testDSN)
-	require.NoError(t, err, "sql.Open should not fail with valid DSN")
-	defer db.Close()
+func TestCloseDBWhenNil(_ *testing.T) {
+	// Save and restore db
+	savedDB := db
+	db = nil
+	defer func() { db = savedDB }()
 
-	// Test that Ping actually tests the connection
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	err = db.PingContext(ctx)
-	require.NoError(t, err, "Ping should succeed with valid connection")
+	// Should not panic
+	CloseDB()
 }

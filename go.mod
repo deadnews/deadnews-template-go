@@ -3,8 +3,6 @@ module github.com/deadnews/deadnews-template-go/v2
 go 1.25
 
 require (
-	github.com/go-chi/chi/v5 v5.2.3
-	github.com/go-chi/httplog/v3 v3.3.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.40.0

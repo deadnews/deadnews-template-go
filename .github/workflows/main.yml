@@ -41,7 +41,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Run tests
-        run: make integr
+        run: make test
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest'

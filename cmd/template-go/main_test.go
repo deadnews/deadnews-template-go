@@ -79,10 +79,18 @@ func TestMain(m *testing.M) {
 	testDSN = fmt.Sprintf("postgres://testuser:testpass@%s:%s/testdb?sslmode=disable", host, port.Port())
 	fmt.Println("Using test DSN: ", testDSN)
 
+	// Initialize the global database connection pool
+	if err := InitDB(testDSN); err != nil {
+		fmt.Printf("Failed to initialize database: %s\n", err)
+		terminateContainer()
+		os.Exit(1)
+	}
+
 	// Run the tests
 	code := m.Run()
 
 	// Clean up
+	CloseDB()
 	terminateContainer()
 
 	// Exit with the appropriate code
@@ -104,8 +112,8 @@ func TestDatabaseService(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Test getting database info directly
-	dbInfo, err := getDatabaseInfo(ctx, testDSN)
+	// Test getting database info directly (uses global db pool)
+	dbInfo, err := getDatabaseInfo(ctx)
 	require.NoError(t, err)
 
 	// Verify expected fields are present
@@ -122,23 +130,22 @@ func TestDatabaseService(t *testing.T) {
 }
 
 func TestSetupServer(t *testing.T) {
-	server := setupServer(":8080", "test-dsn")
+	server := setupServer()
 	assert.NotNil(t, server)
-	assert.Equal(t, ":8080", server.Addr)
+	assert.Equal(t, ":8000", server.Addr)
 	assert.NotNil(t, server.Handler)
 }
 
-func TestMakeDatabaseTestHandler_Success(t *testing.T) {
+func TestHandleDatabaseTest_Success(t *testing.T) {
 	if os.Getenv("TESTCONTAINERS") != "1" {
 		t.Skip("Skipping integration test, set TESTCONTAINERS=1 to run it.")
 	}
 
-	handler := handleDatabaseTest(testDSN)
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	handleDatabaseTest(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Contains(t, rr.Header().Get("Content-Type"), "application/json")
@@ -160,13 +167,18 @@ func TestMakeDatabaseTestHandler_Success(t *testing.T) {
 	assert.Contains(t, version, "PostgreSQL", "version should contain PostgreSQL")
 }
 
-func TestMakeDatabaseTestHandler_Error(t *testing.T) {
-	handler := handleDatabaseTest("invalid-dsn")
+func TestHandleDatabaseTest_Error(t *testing.T) {
+	// This test requires db to be nil to trigger error
+	// Save and restore db
+	savedDB := db
+	db = nil
+	defer func() { db = savedDB }()
+
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	handleDatabaseTest(rr, req)
 
 	assert.Equal(t, http.StatusInternalServerError, rr.Code)
 	assert.Contains(t, rr.Body.String(), "Internal server error")
@@ -177,7 +189,7 @@ func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 		t.Skip("Skipping integration test, set TESTCONTAINERS=1 to run it.")
 	}
 
-	server := setupServer(":0", testDSN)
+	server := setupServer()
 	ts := httptest.NewServer(server.Handler)
 	defer ts.Close()
 
@@ -200,7 +212,13 @@ func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 }
 
 func TestHandleDatabaseTest_ViaServer_Error(t *testing.T) {
-	server := setupServer(":0", "invalid-dsn")
+	// This test requires db to be nil to trigger error
+	// Save and restore db
+	savedDB := db
+	db = nil
+	defer func() { db = savedDB }()
+
+	server := setupServer()
 	ts := httptest.NewServer(server.Handler)
 	defer ts.Close()
 
@@ -216,7 +234,7 @@ func TestHandleDatabaseTest_ViaServer_Error(t *testing.T) {
 }
 
 func TestHealthEndpoint(t *testing.T) {
-	server := setupServer(":0", "test-dsn")
+	server := setupServer()
 	ts := httptest.NewServer(server.Handler)
 	defer ts.Close()
 
@@ -229,11 +247,10 @@ func TestHealthEndpoint(t *testing.T) {
 	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Contains(t, resp.Header.Get("Content-Type"), "text/plain")
 }
 
-// TestMakeDatabaseTestHandler_JSONError tests the JSON encoding error path.
-func TestMakeDatabaseTestHandler_JSONError(t *testing.T) {
+// TestHandleDatabaseTestJSONError tests the JSON encoding error path.
+func TestHandleDatabaseTestJSONError(t *testing.T) {
 	if os.Getenv("TESTCONTAINERS") != "1" {
 		t.Skip("Skipping integration test, set TESTCONTAINERS=1 to run it.")
 	}
@@ -263,22 +280,18 @@ func TestMakeDatabaseTestHandler_JSONError(t *testing.T) {
 
 // TestServerConfiguration tests server timeout configuration.
 func TestServerConfiguration(t *testing.T) {
-	server := setupServer(":8080", "test-dsn")
+	server := setupServer()
 
 	assert.Equal(t, 15*time.Second, server.ReadTimeout)
 	assert.Equal(t, 15*time.Second, server.WriteTimeout)
 	assert.Equal(t, 60*time.Second, server.IdleTimeout)
 }
 
-// TestMakeDatabaseTestHandler_ContextCancellation tests context cancellation.
-func TestMakeDatabaseTestHandler_ContextCancellation(t *testing.T) {
-	// Use testDSN if available, otherwise skip this test
-	dsn := testDSN
-	if dsn == "" {
-		dsn = "postgres://user:pass@127.0.0.1:5432/db?sslmode=disable"
+// TestHandleDatabaseTestContextCancellation tests context cancellation.
+func TestHandleDatabaseTestContextCancellation(t *testing.T) {
+	if os.Getenv("TESTCONTAINERS") != "1" {
+		t.Skip("Skipping integration test, set TESTCONTAINERS=1 to run it.")
 	}
-
-	handler := handleDatabaseTest(dsn)
 
 	// Create a cancelled context
 	ctx, cancel := context.WithCancel(context.Background())
@@ -288,17 +301,17 @@ func TestMakeDatabaseTestHandler_ContextCancellation(t *testing.T) {
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
+	handleDatabaseTest(rr, req)
 
 	assert.Equal(t, http.StatusInternalServerError, rr.Code)
 	assert.Contains(t, rr.Body.String(), "Internal server error")
 }
 
-// TestSetupServer_MiddlewareConfiguration tests that all middleware is properly configured.
-func TestSetupServer_MiddlewareConfiguration(t *testing.T) {
-	server := setupServer(":8080", "test-dsn")
+// TestSetupServerMiddlewareConfiguration tests that all middleware is properly configured.
+func TestSetupServerMiddlewareConfiguration(t *testing.T) {
+	server := setupServer()
 
-	// Test that heartbeat endpoint is configured
+	// Test that health endpoint is configured
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/health", http.NoBody)
 	require.NoError(t, err)
 
@@ -308,11 +321,16 @@ func TestSetupServer_MiddlewareConfiguration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
-// TestSetupServer_RoutingConfiguration tests that routes are properly configured.
-func TestSetupServer_RoutingConfiguration(t *testing.T) {
-	server := setupServer(":8080", "invalid-dsn")
+// TestSetupServerRoutingConfiguration tests that routes are properly configured.
+func TestSetupServerRoutingConfiguration(t *testing.T) {
+	// This test requires db to be nil to trigger error
+	savedDB := db
+	db = nil
+	defer func() { db = savedDB }()
 
-	// Test that /test endpoint exists and returns error for invalid DSN
+	server := setupServer()
+
+	// Test that /test endpoint exists and returns error when db is nil
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
 	require.NoError(t, err)
 
@@ -322,9 +340,9 @@ func TestSetupServer_RoutingConfiguration(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, rr.Code)
 }
 
-// TestSetupServer_NonExistentRoute tests 404 handling.
-func TestSetupServer_NonExistentRoute(t *testing.T) {
-	server := setupServer(":8080", "test-dsn")
+// TestSetupServerNonExistentRoute tests 404 handling.
+func TestSetupServerNonExistentRoute(t *testing.T) {
+	server := setupServer()
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/nonexistent", http.NoBody)
 	require.NoError(t, err)
