@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.2.0](https://github.com/deadnews/deadnews-template-go/compare/v2.1.0...v2.2.0) - 2025-12-06
+
+### Features
+
+- replace `chi` and `sqlx` with standard library ([#149](https://github.com/deadnews/deadnews-template-go/issues/149)) - ([ae5025a](https://github.com/deadnews/deadnews-template-go/commit/ae5025a4ded9c55f10e6eb7daabc03f46c39db08))
+
 ## [2.1.0](https://github.com/deadnews/deadnews-template-go/compare/v2.0.6...v2.1.0) - 2025-12-04
 
 ### Features
