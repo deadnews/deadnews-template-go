@@ -10,12 +10,12 @@ COPY go.mod go.sum cmd ./
 RUN --mount=type=cache,target=${GOCACHE} \
     go build -o /app/dist/template-go ./...
 
-FROM gcr.io/distroless/static-debian12@sha256:87bce11be0af225e4ca761c40babb06d6d559f5767fbf7dc3c47f0f1a466b92c AS runtime
+FROM gcr.io/distroless/static-debian12@sha256:4b2a093ef4649bccd586625090a3c668b254cfe180dee54f4c94f3e9bd7e381e AS runtime
 LABEL maintainer="deadnews <deadnewsgit@gmail.com>"
 
 ENV SERVICE_PORT=8000
 
-COPY --from=ghcr.io/tarampampam/microcheck:1.2.0@sha256:42cdee55eddc4c5b5bd76cb6df5334ca22ce7dc21066aeea7d059898ffbf84fd /bin/httpcheck /bin/httpcheck
+COPY --from=ghcr.io/tarampampam/microcheck:1.3.0@sha256:79c187c05bfa67518078bf4db117771942fa8fe107dc79a905861c75ddf28dfa /bin/httpcheck /bin/httpcheck
 
 COPY --from=builder /app/dist/template-go /bin/template-go
 
