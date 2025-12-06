@@ -1,4 +1,4 @@
-.PHONY: all clean default run build update check pc test integr
+.PHONY: all clean default run build update check pc test
 
 default: check
 
@@ -21,9 +21,6 @@ check: pc test
 pc:
 	prek run -a
 test:
-	go test -v -race -covermode=atomic -coverprofile='coverage.txt' ./...
-
-integr:
 	TESTCONTAINERS=1 go test -v -race -covermode=atomic -coverprofile=coverage.txt ./...
 
 bumped:
