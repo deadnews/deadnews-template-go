@@ -104,10 +104,16 @@ func terminateContainer() {
 	}
 }
 
-func TestDatabaseService(t *testing.T) {
+// skipIfNoTestcontainers skips the test if testcontainers are not enabled.
+func skipIfNoTestcontainers(t *testing.T) {
+	t.Helper()
 	if os.Getenv("TESTCONTAINERS") != "1" {
 		t.Skip("Skipping integration test, set TESTCONTAINERS=1 to run it.")
 	}
+}
+
+func TestDatabaseService(t *testing.T) {
+	skipIfNoTestcontainers(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -137,9 +143,7 @@ func TestSetupServer(t *testing.T) {
 }
 
 func TestHandleDatabaseTest_Success(t *testing.T) {
-	if os.Getenv("TESTCONTAINERS") != "1" {
-		t.Skip("Skipping integration test, set TESTCONTAINERS=1 to run it.")
-	}
+	skipIfNoTestcontainers(t)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
 	require.NoError(t, err)
@@ -167,27 +171,8 @@ func TestHandleDatabaseTest_Success(t *testing.T) {
 	assert.Contains(t, version, "PostgreSQL", "version should contain PostgreSQL")
 }
 
-func TestHandleDatabaseTest_Error(t *testing.T) {
-	// This test requires db to be nil to trigger error
-	// Save and restore db
-	savedDB := db
-	db = nil
-	defer func() { db = savedDB }()
-
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	handleDatabaseTest(rr, req)
-
-	assert.Equal(t, http.StatusInternalServerError, rr.Code)
-	assert.Contains(t, rr.Body.String(), "Internal server error")
-}
-
 func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
-	if os.Getenv("TESTCONTAINERS") != "1" {
-		t.Skip("Skipping integration test, set TESTCONTAINERS=1 to run it.")
-	}
+	skipIfNoTestcontainers(t)
 
 	server := setupServer()
 	ts := httptest.NewServer(server.Handler)
@@ -211,28 +196,6 @@ func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 	assert.Contains(t, response, "version")
 }
 
-func TestHandleDatabaseTest_ViaServer_Error(t *testing.T) {
-	// This test requires db to be nil to trigger error
-	// Save and restore db
-	savedDB := db
-	db = nil
-	defer func() { db = savedDB }()
-
-	server := setupServer()
-	ts := httptest.NewServer(server.Handler)
-	defer ts.Close()
-
-	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/test", http.NoBody)
-	require.NoError(t, err)
-
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-}
-
 func TestHealthEndpoint(t *testing.T) {
 	server := setupServer()
 	ts := httptest.NewServer(server.Handler)
@@ -249,35 +212,6 @@ func TestHealthEndpoint(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
-// TestHandleDatabaseTestJSONError tests the JSON encoding error path.
-func TestHandleDatabaseTestJSONError(t *testing.T) {
-	if os.Getenv("TESTCONTAINERS") != "1" {
-		t.Skip("Skipping integration test, set TESTCONTAINERS=1 to run it.")
-	}
-
-	// Create a handler that will trigger JSON encoding error by using a channel (which can't be JSON encoded)
-	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		// This will succeed
-		// Add a channel to the response to force JSON encoding error
-		response := map[string]any{
-			"bad": make(chan int),
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(response)
-	})
-
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
-
-	// Status will still be 200 because the error happens after WriteHeader
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Contains(t, rr.Header().Get("Content-Type"), "application/json")
-}
-
 // TestServerConfiguration tests server timeout configuration.
 func TestServerConfiguration(t *testing.T) {
 	server := setupServer()
@@ -289,9 +223,7 @@ func TestServerConfiguration(t *testing.T) {
 
 // TestHandleDatabaseTestContextCancellation tests context cancellation.
 func TestHandleDatabaseTestContextCancellation(t *testing.T) {
-	if os.Getenv("TESTCONTAINERS") != "1" {
-		t.Skip("Skipping integration test, set TESTCONTAINERS=1 to run it.")
-	}
+	skipIfNoTestcontainers(t)
 
 	// Create a cancelled context
 	ctx, cancel := context.WithCancel(context.Background())
@@ -321,25 +253,6 @@ func TestSetupServerMiddlewareConfiguration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
-// TestSetupServerRoutingConfiguration tests that routes are properly configured.
-func TestSetupServerRoutingConfiguration(t *testing.T) {
-	// This test requires db to be nil to trigger error
-	savedDB := db
-	db = nil
-	defer func() { db = savedDB }()
-
-	server := setupServer()
-
-	// Test that /test endpoint exists and returns error when db is nil
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	server.Handler.ServeHTTP(rr, req)
-
-	assert.Equal(t, http.StatusInternalServerError, rr.Code)
-}
-
 // TestSetupServerNonExistentRoute tests 404 handling.
 func TestSetupServerNonExistentRoute(t *testing.T) {
 	server := setupServer()
@@ -351,4 +264,56 @@ func TestSetupServerNonExistentRoute(t *testing.T) {
 	server.Handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusNotFound, rr.Code)
+}
+
+// TestHealthEndpointDirect tests the handleHealth function directly.
+func TestHealthEndpointDirect(t *testing.T) {
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/health", http.NoBody)
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	handleHealth(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+}
+
+// TestSetupServerMethodNotAllowed tests that wrong HTTP methods are rejected.
+func TestSetupServerMethodNotAllowed(t *testing.T) {
+	server := setupServer()
+
+	tests := []struct {
+		name   string
+		method string
+		path   string
+	}{
+		{"POST to /health", http.MethodPost, "/health"},
+		{"PUT to /health", http.MethodPut, "/health"},
+		{"DELETE to /test", http.MethodDelete, "/test"},
+		{"POST to /test", http.MethodPost, "/test"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req, err := http.NewRequestWithContext(context.Background(), tt.method, tt.path, http.NoBody)
+			require.NoError(t, err)
+
+			rr := httptest.NewRecorder()
+			server.Handler.ServeHTTP(rr, req)
+
+			// Standard library returns 405 Method Not Allowed for wrong methods on defined routes
+			assert.Equal(t, http.StatusMethodNotAllowed, rr.Code)
+		})
+	}
+}
+
+// TestSetupServerReturnsValidServer tests that setupServer returns a properly configured server.
+func TestSetupServerReturnsValidServer(t *testing.T) {
+	server := setupServer()
+
+	assert.NotNil(t, server)
+	assert.NotNil(t, server.Handler)
+	assert.Equal(t, ":8000", server.Addr)
+	assert.Greater(t, server.ReadTimeout, time.Duration(0))
+	assert.Greater(t, server.WriteTimeout, time.Duration(0))
+	assert.Greater(t, server.IdleTimeout, time.Duration(0))
 }

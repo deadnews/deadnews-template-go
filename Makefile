@@ -1,7 +1,5 @@
 .PHONY: all clean default run build update check pc test
 
-TESTCONTAINERS ?= 1
-
 default: check
 
 run:
@@ -19,19 +17,17 @@ update:
 	go mod verify
 	prek auto-update
 
-check: TESTCONTAINERS = 1
 check: pc test
 pc:
 	prek run -a
 test:
-	TESTCONTAINERS=$(TESTCONTAINERS) go test -v -race -covermode=atomic -coverprofile=coverage.txt ./...
+	TESTCONTAINERS=1 go test -v -race -covermode=atomic -coverprofile=coverage.txt ./...
 
 bumped:
 	git cliff --bumped-version
 
 # make release TAG=$(git cliff --bumped-version)-alpha.0
-release: TESTCONTAINERS = 0
-release: pc test
+release: check
 	git cliff -o CHANGELOG.md --tag $(TAG)
 	prek run --files CHANGELOG.md || prek run --files CHANGELOG.md
 	git add CHANGELOG.md

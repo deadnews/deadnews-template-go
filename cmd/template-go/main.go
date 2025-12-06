@@ -69,7 +69,7 @@ func setupServer() *http.Server {
 	mux.HandleFunc("GET /health", handleHealth)
 	mux.HandleFunc("GET /test", handleDatabaseTest)
 
-	// Apply middleware
+	// Apply middlewares
 	handler := Recoverer(Logger(mux))
 
 	return &http.Server{
