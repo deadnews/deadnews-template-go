@@ -1,7 +1,6 @@
 FROM golang:1.25.5-alpine@sha256:26111811bc967321e7b6f852e914d14bede324cd1accb7f81811929a6a57fea9 AS builder
 
 ENV GOCACHE="/cache/go-build" \
-    # Disable CGO to build a static binary
     CGO_ENABLED=0
 
 WORKDIR /app
@@ -18,7 +17,6 @@ COPY --from=ghcr.io/tarampampam/microcheck:1.3.0@sha256:79c187c05bfa67518078bf4d
 COPY --from=builder /app/dist/template-go /bin/template-go
 
 USER nonroot:nonroot
-EXPOSE ${SERVICE_PORT}
 HEALTHCHECK NONE
 
 ENTRYPOINT ["/bin/template-go"]
