@@ -25,6 +25,9 @@ coverage.out
 .env
 .env.dev
 
+# todo
+*.todo.md
+
 # vscode
 .vscode/*
 !.vscode/settings.json
@@ -32,6 +35,3 @@ coverage.out
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/*.code-snippets
-
-# temp
-.temp.md

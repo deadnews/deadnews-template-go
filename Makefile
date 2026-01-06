@@ -16,6 +16,7 @@ update:
 	go mod tidy
 	go mod verify
 	prek auto-update
+	pinact run -update
 
 check: pc test
 pc:
