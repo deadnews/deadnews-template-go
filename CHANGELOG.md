@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.2.1](https://github.com/deadnews/deadnews-template-go/compare/v2.2.0...v2.2.1) - 2026-01-10
+
+### Chores
+
+- _(dockerfile)_ remove `EXPOSE` directive - ([b2de264](https://github.com/deadnews/deadnews-template-go/commit/b2de2640daffe5a0db26e6ab87b784627442244d))
+- _(github)_ replace docker reusable workflow ([#158](https://github.com/deadnews/deadnews-template-go/issues/158)) - ([476c4d3](https://github.com/deadnews/deadnews-template-go/commit/476c4d3d8ef173939e9e65d441ff30b611b28b48))
+- _(prek)_ add `zizmor` hook - ([ba0088f](https://github.com/deadnews/deadnews-template-go/commit/ba0088ff02f9f5db1d47ed0e6ead3eb1dab116a8))
+
+### Dependencies
+
+- update module github.com/jackc/pgx/v5 to v5.8.0 ([#156](https://github.com/deadnews/deadnews-template-go/issues/156)) - ([dfef4d4](https://github.com/deadnews/deadnews-template-go/commit/dfef4d43ad3c81728769eca4e7b1587805cb5ed7))
+
 ## [2.2.0](https://github.com/deadnews/deadnews-template-go/compare/v2.1.0...v2.2.0) - 2025-12-06
 
 ### Features
