@@ -20,11 +20,12 @@ linters:
     - exptostd
     - fatcontext
     - forcetypeassert
-    - funlen
     - gochecknoinits
+    - gocognit
     - goconst
     - gocritic
     - gocyclo
+    - godoclint
     - godot
     - goprintffuncname
     - gosec
@@ -79,8 +80,9 @@ linters:
       - path: _test\.go
         linters:
           - errchkjson
-          - funlen
+          - gocognit
           - goconst
+          - godoclint
 
 formatters:
   enable:

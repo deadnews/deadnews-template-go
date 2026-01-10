@@ -1,6 +1,21 @@
-.PHONY: all clean default run build update check pc test
+.PHONY: all clean default run build update up check pc test
 
 default: check
+
+check: pc test
+pc:
+	prek run -a
+test:
+	TESTCONTAINERS=1 go test -v -race -covermode=atomic -coverprofile=coverage.txt ./...
+
+update: up up-ci
+up:
+	go get -u -t ./...
+	go mod tidy
+	go mod verify
+up-ci:
+	prek auto-update
+	pinact run -update
 
 run:
 	SERVICE_DSN=test go run ./cmd/template-go
@@ -10,18 +25,6 @@ build:
 
 goreleaser:
 	goreleaser --clean --snapshot --skip=publish
-
-update:
-	go get -u -t ./...
-	go mod tidy
-	go mod verify
-	prek auto-update
-
-check: pc test
-pc:
-	prek run -a
-test:
-	TESTCONTAINERS=1 go test -v -race -covermode=atomic -coverprofile=coverage.txt ./...
 
 bumped:
 	git cliff --bumped-version
