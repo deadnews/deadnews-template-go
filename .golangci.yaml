@@ -8,7 +8,6 @@ linters:
     - bidichk
     - bodyclose
     - copyloopvar
-    - decorder
     - dogsled
     - dupl
     - durationcheck

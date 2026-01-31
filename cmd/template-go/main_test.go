@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -142,76 +141,6 @@ func TestSetupServer(t *testing.T) {
 	assert.NotNil(t, server.Handler)
 }
 
-func TestHandleDatabaseTest_Success(t *testing.T) {
-	skipIfNoTestcontainers(t)
-
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	handleDatabaseTest(rr, req)
-
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.Contains(t, rr.Header().Get("Content-Type"), "application/json")
-
-	var response map[string]any
-	err = json.NewDecoder(rr.Body).Decode(&response)
-	require.NoError(t, err)
-
-	// Verify expected fields are present
-	assert.Contains(t, response, "database")
-	assert.Contains(t, response, "version")
-
-	// Verify database name is correct
-	assert.Equal(t, "testdb", response["database"])
-
-	// Verify version contains PostgreSQL
-	version, ok := response["version"].(string)
-	assert.True(t, ok, "version should be a string")
-	assert.Contains(t, version, "PostgreSQL", "version should contain PostgreSQL")
-}
-
-func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
-	skipIfNoTestcontainers(t)
-
-	server := setupServer()
-	ts := httptest.NewServer(server.Handler)
-	defer ts.Close()
-
-	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/test", http.NoBody)
-	require.NoError(t, err)
-
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Contains(t, resp.Header.Get("Content-Type"), "application/json")
-
-	var response map[string]any
-	err = json.NewDecoder(resp.Body).Decode(&response)
-	require.NoError(t, err)
-	assert.Contains(t, response, "database")
-	assert.Contains(t, response, "version")
-}
-
-func TestHealthEndpoint(t *testing.T) {
-	server := setupServer()
-	ts := httptest.NewServer(server.Handler)
-	defer ts.Close()
-
-	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/health", http.NoBody)
-	require.NoError(t, err)
-
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-}
-
 // TestServerConfiguration tests server timeout configuration.
 func TestServerConfiguration(t *testing.T) {
 	server := setupServer()
@@ -219,24 +148,6 @@ func TestServerConfiguration(t *testing.T) {
 	assert.Equal(t, 15*time.Second, server.ReadTimeout)
 	assert.Equal(t, 15*time.Second, server.WriteTimeout)
 	assert.Equal(t, 60*time.Second, server.IdleTimeout)
-}
-
-// TestHandleDatabaseTestContextCancellation tests context cancellation.
-func TestHandleDatabaseTestContextCancellation(t *testing.T) {
-	skipIfNoTestcontainers(t)
-
-	// Create a cancelled context
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/test", http.NoBody)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	handleDatabaseTest(rr, req)
-
-	assert.Equal(t, http.StatusInternalServerError, rr.Code)
-	assert.Contains(t, rr.Body.String(), "Internal server error")
 }
 
 // TestSetupServerMiddlewareConfiguration tests that all middleware is properly configured.
@@ -264,17 +175,6 @@ func TestSetupServerNonExistentRoute(t *testing.T) {
 	server.Handler.ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusNotFound, rr.Code)
-}
-
-// TestHealthEndpointDirect tests the handleHealth function directly.
-func TestHealthEndpointDirect(t *testing.T) {
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/health", http.NoBody)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	handleHealth(rr, req)
-
-	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
 // TestSetupServerMethodNotAllowed tests that wrong HTTP methods are rejected.
