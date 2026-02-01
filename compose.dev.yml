@@ -1,5 +1,5 @@
 services:
-  template-go:
+  service:
     build: .
     read_only: true
     cap_drop: [ALL]

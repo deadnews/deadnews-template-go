@@ -85,27 +85,11 @@ func TestHandleDatabaseTestContextCancellation(t *testing.T) {
 
 func TestHealthEndpoint(t *testing.T) {
 	server := setupServer()
-	ts := httptest.NewServer(server.Handler)
-	defer ts.Close()
 
-	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/health", http.NoBody)
-	require.NoError(t, err)
+	req := httptest.NewRequest(http.MethodGet, "/health", http.NoBody)
+	rec := httptest.NewRecorder()
 
-	resp, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
+	server.Handler.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-}
-
-// TestHealthEndpointDirect tests the handleHealth function directly.
-func TestHealthEndpointDirect(t *testing.T) {
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/health", http.NoBody)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	handleHealth(rr, req)
-
-	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Equal(t, http.StatusOK, rec.Code)
 }
