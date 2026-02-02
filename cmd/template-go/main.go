@@ -32,7 +32,6 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	// Graceful shutdown
 	go func() {
 		<-ctx.Done()
 		slog.Info("Shutdown signal received")
