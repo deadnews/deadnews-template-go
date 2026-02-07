@@ -1,4 +1,4 @@
-// Package main is the entry point for the template-go application.
+// Package main provides template-go, a template service with PostgreSQL.
 package main
 
 import (
@@ -15,19 +15,19 @@ import (
 func main() {
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, nil)))
 
-	dsn := os.Getenv("SERVICE_DSN")
-	if dsn == "" {
-		slog.Error("SERVICE_DSN environment variable is not set")
+	cfg, err := LoadConfig()
+	if err != nil {
+		slog.Error("Failed to load config", "error", err)
 		os.Exit(1)
 	}
 
-	if err := InitDB(dsn); err != nil {
-		slog.Error("Failed to initialize database", "error", err)
+	app, err := NewApp(cfg)
+	if err != nil {
+		slog.Error("Failed to initialize application", "error", err)
 		os.Exit(1)
 	}
-	defer CloseDB()
 
-	server := setupServer()
+	server := setupServer(app)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -44,6 +44,8 @@ func main() {
 		} else {
 			slog.Info("Server shutdown completed")
 		}
+
+		app.Close()
 	}()
 
 	slog.Info("Starting server", "address", ":8000")
@@ -52,11 +54,11 @@ func main() {
 	}
 }
 
-func setupServer() *http.Server {
+func setupServer(app *App) *http.Server {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health", handleHealth)
-	mux.HandleFunc("GET /test", handleDatabaseTest)
+	mux.HandleFunc("GET /test", app.handleDatabaseTest)
 
 	handler := Recoverer(Logger(mux))
 

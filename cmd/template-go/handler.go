@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 )
@@ -12,16 +13,15 @@ func handleHealth(w http.ResponseWriter, _ *http.Request) {
 }
 
 // handleDatabaseTest handles the test endpoint and returns database information as JSON.
-func handleDatabaseTest(w http.ResponseWriter, r *http.Request) {
-	dbInfo, err := getDatabaseInfo(r.Context())
+func (app *App) handleDatabaseTest(w http.ResponseWriter, r *http.Request) {
+	dbInfo, err := getDatabaseInfo(r.Context(), app.DB)
 	if err != nil {
 		slog.Error("Failed to get database info", "error", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to get database info: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(dbInfo); err != nil {
 		slog.Error("Failed to write JSON response", "error", err)
 	}

@@ -14,11 +14,13 @@ import (
 func TestHandleDatabaseTest_Success(t *testing.T) {
 	skipIfNoTestcontainers(t)
 
+	app := testApp()
+
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
-	handleDatabaseTest(rr, req)
+	app.handleDatabaseTest(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Contains(t, rr.Header().Get("Content-Type"), "application/json")
@@ -43,7 +45,8 @@ func TestHandleDatabaseTest_Success(t *testing.T) {
 func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 	skipIfNoTestcontainers(t)
 
-	server := setupServer()
+	app := testApp()
+	server := setupServer(app)
 	ts := httptest.NewServer(server.Handler)
 	defer ts.Close()
 
@@ -69,6 +72,8 @@ func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 func TestHandleDatabaseTestContextCancellation(t *testing.T) {
 	skipIfNoTestcontainers(t)
 
+	app := testApp()
+
 	// Create a cancelled context
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
@@ -77,14 +82,14 @@ func TestHandleDatabaseTestContextCancellation(t *testing.T) {
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
-	handleDatabaseTest(rr, req)
+	app.handleDatabaseTest(rr, req)
 
 	assert.Equal(t, http.StatusInternalServerError, rr.Code)
-	assert.Contains(t, rr.Body.String(), "Internal server error")
 }
 
 func TestHealthEndpoint(t *testing.T) {
-	server := setupServer()
+	app := testApp()
+	server := setupServer(app)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", http.NoBody)
 	rec := httptest.NewRecorder()

@@ -17,7 +17,7 @@ func TestGetDatabaseInfo(t *testing.T) {
 		defer cancel()
 		time.Sleep(1 * time.Millisecond)
 
-		_, err := getDatabaseInfo(ctx)
+		_, err := getDatabaseInfo(ctx, testPool)
 		require.Error(t, err)
 	})
 
@@ -25,7 +25,7 @@ func TestGetDatabaseInfo(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 
-		_, err := getDatabaseInfo(ctx)
+		_, err := getDatabaseInfo(ctx, testPool)
 		require.Error(t, err)
 	})
 
@@ -33,7 +33,7 @@ func TestGetDatabaseInfo(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		dbInfo, err := getDatabaseInfo(ctx)
+		dbInfo, err := getDatabaseInfo(ctx, testPool)
 		require.NoError(t, err)
 
 		assert.Contains(t, dbInfo, "database")
@@ -49,15 +49,15 @@ func TestGetDatabaseInfo(t *testing.T) {
 	})
 }
 
-func TestInitDB(t *testing.T) {
+func TestOpenDB(t *testing.T) {
 	t.Run("returns error for invalid DSN", func(t *testing.T) {
-		err := InitDB("invalid-dsn")
+		_, err := openDB("invalid-dsn")
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "failed to parse database config")
 	})
 
 	t.Run("returns error for unreachable host", func(t *testing.T) {
-		err := InitDB("postgres://user:pass@127.0.0.1:59999/db?sslmode=disable&connect_timeout=1")
+		_, err := openDB("postgres://user:pass@127.0.0.1:59999/db?sslmode=disable&connect_timeout=1")
 		require.Error(t, err)
 	})
 }

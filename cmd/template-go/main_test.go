@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -17,10 +18,15 @@ import (
 
 // Global variables for test environment.
 var (
-	testDSN       string
+	testPool      *pgxpool.Pool
 	testContext   context.Context
 	testContainer testcontainers.Container
 )
+
+// testApp creates an App using the shared test pool.
+func testApp() *App {
+	return &App{DB: testPool}
+}
 
 // TestMain sets up and tears down the shared test environment.
 func TestMain(m *testing.M) {
@@ -75,11 +81,12 @@ func TestMain(m *testing.M) {
 	}
 
 	// Construct DSN
-	testDSN = fmt.Sprintf("postgres://testuser:testpass@%s:%s/testdb?sslmode=disable", host, port.Port())
-	fmt.Println("Using test DSN: ", testDSN)
+	dsn := fmt.Sprintf("postgres://testuser:testpass@%s:%s/testdb?sslmode=disable", host, port.Port())
+	fmt.Println("Using test DSN: ", dsn)
 
-	// Initialize the global database connection pool
-	if err := InitDB(testDSN); err != nil {
+	// Initialize the database connection pool
+	testPool, err = openDB(dsn)
+	if err != nil {
 		fmt.Printf("Failed to initialize database: %s\n", err)
 		terminateContainer()
 		os.Exit(1)
@@ -89,7 +96,7 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 
 	// Clean up
-	CloseDB()
+	testPool.Close()
 	terminateContainer()
 
 	// Exit with the appropriate code
@@ -117,8 +124,7 @@ func TestDatabaseService(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Test getting database info directly (uses global db pool)
-	dbInfo, err := getDatabaseInfo(ctx)
+	dbInfo, err := getDatabaseInfo(ctx, testPool)
 	require.NoError(t, err)
 
 	// Verify expected fields are present
@@ -135,7 +141,8 @@ func TestDatabaseService(t *testing.T) {
 }
 
 func TestSetupServer(t *testing.T) {
-	server := setupServer()
+	app := testApp()
+	server := setupServer(app)
 	assert.NotNil(t, server)
 	assert.Equal(t, ":8000", server.Addr)
 	assert.NotNil(t, server.Handler)
@@ -143,7 +150,8 @@ func TestSetupServer(t *testing.T) {
 
 // TestServerConfiguration tests server timeout configuration.
 func TestServerConfiguration(t *testing.T) {
-	server := setupServer()
+	app := testApp()
+	server := setupServer(app)
 
 	assert.Equal(t, 15*time.Second, server.ReadTimeout)
 	assert.Equal(t, 15*time.Second, server.WriteTimeout)
@@ -152,7 +160,8 @@ func TestServerConfiguration(t *testing.T) {
 
 // TestSetupServerMiddlewareConfiguration tests that all middleware is properly configured.
 func TestSetupServerMiddlewareConfiguration(t *testing.T) {
-	server := setupServer()
+	app := testApp()
+	server := setupServer(app)
 
 	// Test that health endpoint is configured
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/health", http.NoBody)
@@ -166,7 +175,8 @@ func TestSetupServerMiddlewareConfiguration(t *testing.T) {
 
 // TestSetupServerNonExistentRoute tests 404 handling.
 func TestSetupServerNonExistentRoute(t *testing.T) {
-	server := setupServer()
+	app := testApp()
+	server := setupServer(app)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/nonexistent", http.NoBody)
 	require.NoError(t, err)
@@ -179,7 +189,8 @@ func TestSetupServerNonExistentRoute(t *testing.T) {
 
 // TestSetupServerMethodNotAllowed tests that wrong HTTP methods are rejected.
 func TestSetupServerMethodNotAllowed(t *testing.T) {
-	server := setupServer()
+	app := testApp()
+	server := setupServer(app)
 
 	tests := []struct {
 		name   string
@@ -208,7 +219,8 @@ func TestSetupServerMethodNotAllowed(t *testing.T) {
 
 // TestSetupServerReturnsValidServer tests that setupServer returns a properly configured server.
 func TestSetupServerReturnsValidServer(t *testing.T) {
-	server := setupServer()
+	app := testApp()
+	server := setupServer(app)
 
 	assert.NotNil(t, server)
 	assert.NotNil(t, server.Handler)

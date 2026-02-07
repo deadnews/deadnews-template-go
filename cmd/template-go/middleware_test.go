@@ -56,6 +56,14 @@ func TestResponseWriterDefaultStatus(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rw.status)
 }
 
+// TestResponseWriterUnwrap tests that Unwrap returns the underlying ResponseWriter.
+func TestResponseWriterUnwrap(t *testing.T) {
+	rec := httptest.NewRecorder()
+	rw := &responseWriter{ResponseWriter: rec, status: http.StatusOK}
+
+	assert.Equal(t, rec, rw.Unwrap())
+}
+
 // TestLoggerMiddleware tests the Logger middleware.
 func TestLoggerMiddleware(t *testing.T) {
 	tests := []struct {
