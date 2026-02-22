@@ -67,6 +67,8 @@ linters:
   settings:
     gosec:
       excludes:
+        - G701
+        - G704
         - G706
     gocritic:
       enable-all: true

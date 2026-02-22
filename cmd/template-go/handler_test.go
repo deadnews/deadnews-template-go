@@ -14,7 +14,7 @@ import (
 func TestHandleDatabaseTest_Success(t *testing.T) {
 	skipIfNoTestcontainers(t)
 
-	app := testApp()
+	app := testApp(t)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
 	require.NoError(t, err)
@@ -45,7 +45,7 @@ func TestHandleDatabaseTest_Success(t *testing.T) {
 func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 	skipIfNoTestcontainers(t)
 
-	app := testApp()
+	app := testApp(t)
 	server := setupServer(app)
 	ts := httptest.NewServer(server.Handler)
 	defer ts.Close()
@@ -72,7 +72,7 @@ func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 func TestHandleDatabaseTestContextCancellation(t *testing.T) {
 	skipIfNoTestcontainers(t)
 
-	app := testApp()
+	app := testApp(t)
 
 	// Create a cancelled context
 	ctx, cancel := context.WithCancel(context.Background())
@@ -88,7 +88,7 @@ func TestHandleDatabaseTestContextCancellation(t *testing.T) {
 }
 
 func TestHealthEndpoint(t *testing.T) {
-	app := testApp()
+	app := testApp(t)
 	server := setupServer(app)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", http.NoBody)
