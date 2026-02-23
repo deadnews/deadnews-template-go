@@ -24,7 +24,8 @@ var (
 )
 
 // testApp creates an App using the shared test pool.
-func testApp() *App {
+func testApp(t *testing.T) *App {
+	t.Helper()
 	return &App{DB: testPool}
 }
 
@@ -141,7 +142,7 @@ func TestDatabaseService(t *testing.T) {
 }
 
 func TestSetupServer(t *testing.T) {
-	app := testApp()
+	app := testApp(t)
 	server := setupServer(app)
 	assert.NotNil(t, server)
 	assert.Equal(t, ":8000", server.Addr)
@@ -150,7 +151,7 @@ func TestSetupServer(t *testing.T) {
 
 // TestServerConfiguration tests server timeout configuration.
 func TestServerConfiguration(t *testing.T) {
-	app := testApp()
+	app := testApp(t)
 	server := setupServer(app)
 
 	assert.Equal(t, 15*time.Second, server.ReadTimeout)
@@ -160,7 +161,7 @@ func TestServerConfiguration(t *testing.T) {
 
 // TestSetupServerMiddlewareConfiguration tests that all middleware is properly configured.
 func TestSetupServerMiddlewareConfiguration(t *testing.T) {
-	app := testApp()
+	app := testApp(t)
 	server := setupServer(app)
 
 	// Test that health endpoint is configured
@@ -175,7 +176,7 @@ func TestSetupServerMiddlewareConfiguration(t *testing.T) {
 
 // TestSetupServerNonExistentRoute tests 404 handling.
 func TestSetupServerNonExistentRoute(t *testing.T) {
-	app := testApp()
+	app := testApp(t)
 	server := setupServer(app)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/nonexistent", http.NoBody)
@@ -189,7 +190,7 @@ func TestSetupServerNonExistentRoute(t *testing.T) {
 
 // TestSetupServerMethodNotAllowed tests that wrong HTTP methods are rejected.
 func TestSetupServerMethodNotAllowed(t *testing.T) {
-	app := testApp()
+	app := testApp(t)
 	server := setupServer(app)
 
 	tests := []struct {
@@ -219,7 +220,7 @@ func TestSetupServerMethodNotAllowed(t *testing.T) {
 
 // TestSetupServerReturnsValidServer tests that setupServer returns a properly configured server.
 func TestSetupServerReturnsValidServer(t *testing.T) {
-	app := testApp()
+	app := testApp(t)
 	server := setupServer(app)
 
 	assert.NotNil(t, server)

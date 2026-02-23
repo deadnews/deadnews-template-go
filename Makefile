@@ -1,12 +1,15 @@
 .PHONY: all clean default run build update up check pc test
 
+TESTCONTAINERS ?= 1
+
 default: check
 
+check: TESTCONTAINERS = 1
 check: pc test
 pc:
 	prek run -a
 test:
-	TESTCONTAINERS=1 go test -v -race -covermode=atomic -coverprofile=coverage.txt ./...
+	TESTCONTAINERS=$(TESTCONTAINERS) go test -v -race -covermode=atomic -coverprofile=coverage.txt ./...
 
 update: up up-ci
 up:
@@ -21,7 +24,7 @@ run:
 	SERVICE_DSN=test go run ./cmd/template-go
 
 build:
-	go build -o ./dist/ ./...
+	go build -ldflags="-s -w" -o ./dist/ ./...
 
 goreleaser:
 	goreleaser --clean --snapshot --skip=publish
