@@ -24,7 +24,7 @@ run:
 	SERVICE_DSN=test go run ./cmd/template-go
 
 build:
-	go build -ldflags="-s -w" -o ./dist/ ./...
+	go build -ldflags=-s -o ./dist/ ./...
 
 goreleaser:
 	goreleaser --clean --snapshot --skip=publish
