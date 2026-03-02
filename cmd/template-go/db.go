@@ -36,22 +36,20 @@ func openDB(dsn string) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
+// DatabaseInfo holds the database name and version.
+type DatabaseInfo struct {
+	Database string `json:"database"`
+	Version  string `json:"version"`
+}
+
 // getDatabaseInfo queries the database and returns current database name and version.
-func getDatabaseInfo(ctx context.Context, db *pgxpool.Pool) (map[string]any, error) {
-	var dbName, version string
+func getDatabaseInfo(ctx context.Context, db *pgxpool.Pool) (*DatabaseInfo, error) {
+	var info DatabaseInfo
 
-	err := db.QueryRow(ctx, "SELECT current_database()").Scan(&dbName)
+	err := db.QueryRow(ctx, "SELECT current_database(), version()").Scan(&info.Database, &info.Version)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get current database name: %w", err)
+		return nil, fmt.Errorf("failed to get database info: %w", err)
 	}
 
-	err = db.QueryRow(ctx, "SELECT version()").Scan(&version)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get database version: %w", err)
-	}
-
-	return map[string]any{
-		"database": dbName,
-		"version":  version,
-	}, nil
+	return &info, nil
 }

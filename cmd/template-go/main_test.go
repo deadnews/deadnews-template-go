@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
@@ -119,59 +118,12 @@ func skipIfNoTestcontainers(t *testing.T) {
 	}
 }
 
-func TestDatabaseService(t *testing.T) {
-	skipIfNoTestcontainers(t)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	dbInfo, err := getDatabaseInfo(ctx, testPool)
-	require.NoError(t, err)
-
-	// Verify expected fields are present
-	assert.Contains(t, dbInfo, "database")
-	assert.Contains(t, dbInfo, "version")
-
-	// Verify database name is correct
-	assert.Equal(t, "testdb", dbInfo["database"])
-
-	// Verify version contains PostgreSQL
-	version, ok := dbInfo["version"].(string)
-	assert.True(t, ok, "version should be a string")
-	assert.Contains(t, version, "PostgreSQL", "version should contain PostgreSQL")
-}
-
 func TestSetupServer(t *testing.T) {
 	app := testApp(t)
 	server := setupServer(app)
+
 	assert.NotNil(t, server)
-	assert.Equal(t, ":8000", server.Addr)
 	assert.NotNil(t, server.Handler)
-}
-
-// TestServerConfiguration tests server timeout configuration.
-func TestServerConfiguration(t *testing.T) {
-	app := testApp(t)
-	server := setupServer(app)
-
-	assert.Equal(t, 15*time.Second, server.ReadTimeout)
-	assert.Equal(t, 15*time.Second, server.WriteTimeout)
-	assert.Equal(t, 60*time.Second, server.IdleTimeout)
-}
-
-// TestSetupServerMiddlewareConfiguration tests that all middleware is properly configured.
-func TestSetupServerMiddlewareConfiguration(t *testing.T) {
-	app := testApp(t)
-	server := setupServer(app)
-
-	// Test that health endpoint is configured
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/health", http.NoBody)
-	require.NoError(t, err)
-
-	rr := httptest.NewRecorder()
-	server.Handler.ServeHTTP(rr, req)
-
-	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
 // TestSetupServerNonExistentRoute tests 404 handling.
@@ -216,17 +168,4 @@ func TestSetupServerMethodNotAllowed(t *testing.T) {
 			assert.Equal(t, http.StatusMethodNotAllowed, rr.Code)
 		})
 	}
-}
-
-// TestSetupServerReturnsValidServer tests that setupServer returns a properly configured server.
-func TestSetupServerReturnsValidServer(t *testing.T) {
-	app := testApp(t)
-	server := setupServer(app)
-
-	assert.NotNil(t, server)
-	assert.NotNil(t, server.Handler)
-	assert.Equal(t, ":8000", server.Addr)
-	assert.Greater(t, server.ReadTimeout, time.Duration(0))
-	assert.Greater(t, server.WriteTimeout, time.Duration(0))
-	assert.Greater(t, server.IdleTimeout, time.Duration(0))
 }

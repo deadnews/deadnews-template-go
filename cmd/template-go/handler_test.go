@@ -25,21 +25,12 @@ func TestHandleDatabaseTest_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 	assert.Contains(t, rr.Header().Get("Content-Type"), "application/json")
 
-	var response map[string]any
+	var response DatabaseInfo
 	err = json.NewDecoder(rr.Body).Decode(&response)
 	require.NoError(t, err)
 
-	// Verify expected fields are present
-	assert.Contains(t, response, "database")
-	assert.Contains(t, response, "version")
-
-	// Verify database name is correct
-	assert.Equal(t, "testdb", response["database"])
-
-	// Verify version contains PostgreSQL
-	version, ok := response["version"].(string)
-	assert.True(t, ok, "version should be a string")
-	assert.Contains(t, version, "PostgreSQL", "version should contain PostgreSQL")
+	assert.Equal(t, "testdb", response.Database)
+	assert.Contains(t, response.Version, "PostgreSQL")
 }
 
 func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
@@ -61,11 +52,11 @@ func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Contains(t, resp.Header.Get("Content-Type"), "application/json")
 
-	var response map[string]any
+	var response DatabaseInfo
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	require.NoError(t, err)
-	assert.Contains(t, response, "database")
-	assert.Contains(t, response, "version")
+	assert.NotEmpty(t, response.Database)
+	assert.NotEmpty(t, response.Version)
 }
 
 // TestHandleDatabaseTestContextCancellation tests context cancellation.

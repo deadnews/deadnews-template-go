@@ -36,16 +36,8 @@ func TestGetDatabaseInfo(t *testing.T) {
 		dbInfo, err := getDatabaseInfo(ctx, testPool)
 		require.NoError(t, err)
 
-		assert.Contains(t, dbInfo, "database")
-		assert.Contains(t, dbInfo, "version")
-
-		database, ok := dbInfo["database"].(string)
-		assert.True(t, ok, "database should be a string")
-		assert.Equal(t, "testdb", database)
-
-		version, ok := dbInfo["version"].(string)
-		assert.True(t, ok, "version should be a string")
-		assert.Contains(t, version, "PostgreSQL")
+		assert.Equal(t, "testdb", dbInfo.Database)
+		assert.Contains(t, dbInfo.Version, "PostgreSQL")
 	})
 }
 

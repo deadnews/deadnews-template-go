@@ -65,8 +65,8 @@ func setupServer(app *App) *http.Server {
 	return &http.Server{
 		Addr:         ":8000",
 		Handler:      handler,
+		IdleTimeout:  60 * time.Second,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  60 * time.Second,
 	}
 }
