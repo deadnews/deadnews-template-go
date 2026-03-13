@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -140,16 +139,17 @@ func TestLoggerMiddleware(t *testing.T) {
 			wrapped := Logger(handler)
 
 			// Make request
-			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
+			req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, tt.path, http.NoBody)
 			rec := httptest.NewRecorder()
 			wrapped.ServeHTTP(rec, req)
 
-			// Check log output
 			logOutput := buf.String()
 			if tt.expectLogged {
 				assert.Contains(t, logOutput, "request")
 				assert.Contains(t, logOutput, tt.path)
 				assert.Contains(t, logOutput, "method=GET")
+				assert.Contains(t, logOutput, fmt.Sprintf("status=%d", tt.handlerStatus))
+				assert.Contains(t, logOutput, fmt.Sprintf("level=%s", tt.expectLogLevel))
 			} else {
 				assert.Empty(t, logOutput)
 			}
@@ -170,7 +170,7 @@ func TestLoggerMiddlewareRequestDetails(t *testing.T) {
 
 	wrapped := Logger(handler)
 
-	req := httptest.NewRequest(http.MethodPost, "/query?param=value", http.NoBody)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/query?param=value", http.NoBody)
 	req.Header.Set("User-Agent", "TestAgent/1.0")
 	rec := httptest.NewRecorder()
 
@@ -198,7 +198,7 @@ func TestRecovererMiddleware(t *testing.T) {
 
 		wrapped := Recoverer(handler)
 
-		req := httptest.NewRequest(http.MethodGet, "/panic", http.NoBody)
+		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/panic", http.NoBody)
 		rec := httptest.NewRecorder()
 
 		// Should not panic
@@ -226,7 +226,7 @@ func TestRecovererMiddleware(t *testing.T) {
 
 		wrapped := Recoverer(handler)
 
-		req := httptest.NewRequest(http.MethodGet, "/panic", http.NoBody)
+		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/panic", http.NoBody)
 		rec := httptest.NewRecorder()
 
 		assert.NotPanics(t, func() {
@@ -244,36 +244,13 @@ func TestRecovererMiddleware(t *testing.T) {
 
 		wrapped := Recoverer(handler)
 
-		req := httptest.NewRequest(http.MethodGet, "/normal", http.NoBody)
+		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/normal", http.NoBody)
 		rec := httptest.NewRecorder()
 
 		wrapped.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, "success", rec.Body.String())
-	})
-
-	t.Run("recovers from panic with runtime error", func(t *testing.T) {
-		var buf bytes.Buffer
-		oldDefault := slog.Default()
-		slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))
-		defer slog.SetDefault(oldDefault)
-
-		handler := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-			panic(errors.New("runtime error"))
-		})
-
-		wrapped := Recoverer(handler)
-
-		req := httptest.NewRequest(http.MethodGet, "/panic", http.NoBody)
-		rec := httptest.NewRecorder()
-
-		assert.NotPanics(t, func() {
-			wrapped.ServeHTTP(rec, req)
-		})
-
-		assert.Equal(t, http.StatusInternalServerError, rec.Code)
-		assert.Contains(t, buf.String(), "panic recovered")
 	})
 }
 
@@ -290,7 +267,7 @@ func TestRecovererMiddlewareLogsURL(t *testing.T) {
 
 	wrapped := Recoverer(handler)
 
-	req := httptest.NewRequest(http.MethodGet, "/test/path?query=value", http.NoBody)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/test/path?query=value", http.NoBody)
 	rec := httptest.NewRecorder()
 
 	wrapped.ServeHTTP(rec, req)
@@ -313,7 +290,7 @@ func TestMiddlewareChain(t *testing.T) {
 		// Chain: Recoverer -> Logger -> Handler
 		wrapped := Recoverer(Logger(handler))
 
-		req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
+		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
 		rec := httptest.NewRecorder()
 
 		wrapped.ServeHTTP(rec, req)
@@ -335,7 +312,7 @@ func TestMiddlewareChain(t *testing.T) {
 		// Chain: Recoverer -> Logger -> Handler
 		wrapped := Recoverer(Logger(handler))
 
-		req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
+		req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
 		rec := httptest.NewRecorder()
 
 		assert.NotPanics(t, func() {
@@ -364,7 +341,7 @@ func TestLoggerMiddlewareWithContext(t *testing.T) {
 	wrapped := Logger(handler)
 
 	ctx := context.WithValue(context.Background(), contextKey("test"), "test-value")
-	req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody).WithContext(ctx)
+	req := httptest.NewRequestWithContext(ctx, http.MethodGet, "/test", http.NoBody)
 	rec := httptest.NewRecorder()
 
 	wrapped.ServeHTTP(rec, req)
@@ -383,46 +360,4 @@ func TestResponseWriterWrite(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, len(testData), n)
 	assert.Equal(t, "test response body", rec.Body.String())
-}
-
-// TestLoggerMiddlewareStatusCodes tests Logger with various status codes.
-func TestLoggerMiddlewareStatusCodes(t *testing.T) {
-	statusCodes := []int{
-		http.StatusOK,
-		http.StatusCreated,
-		http.StatusNoContent,
-		http.StatusMovedPermanently,
-		http.StatusBadRequest,
-		http.StatusUnauthorized,
-		http.StatusForbidden,
-		http.StatusNotFound,
-		http.StatusMethodNotAllowed,
-		http.StatusInternalServerError,
-		http.StatusBadGateway,
-		http.StatusServiceUnavailable,
-	}
-
-	for _, code := range statusCodes {
-		t.Run(http.StatusText(code), func(t *testing.T) {
-			var buf bytes.Buffer
-			oldDefault := slog.Default()
-			slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))
-			defer slog.SetDefault(oldDefault)
-
-			handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.WriteHeader(code)
-			})
-
-			wrapped := Logger(handler)
-
-			req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
-			rec := httptest.NewRecorder()
-
-			wrapped.ServeHTTP(rec, req)
-
-			assert.Equal(t, code, rec.Code)
-			// Check that the numeric status code is logged
-			assert.Contains(t, buf.String(), fmt.Sprintf("status=%d", code))
-		})
-	}
 }

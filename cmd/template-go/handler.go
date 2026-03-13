@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 )
@@ -17,7 +16,7 @@ func (app *App) handleDatabaseTest(w http.ResponseWriter, r *http.Request) {
 	dbInfo, err := getDatabaseInfo(r.Context(), app.DB)
 	if err != nil {
 		slog.Error("Failed to get database info", "error", err)
-		http.Error(w, fmt.Sprintf("Failed to get database info: %v", err), http.StatusInternalServerError)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 

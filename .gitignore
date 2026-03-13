@@ -25,9 +25,6 @@ coverage.out
 .env
 .env.dev
 
-# todo
-*.todo.md
-
 # vscode
 .vscode/*
 !.vscode/settings.json

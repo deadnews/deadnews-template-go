@@ -16,11 +16,7 @@ import (
 )
 
 // Global variables for test environment.
-var (
-	testPool      *pgxpool.Pool
-	testContext   context.Context
-	testContainer testcontainers.Container
-)
+var testPool *pgxpool.Pool
 
 // testApp creates an App using the shared test pool.
 func testApp(t *testing.T) *App {
@@ -30,15 +26,12 @@ func testApp(t *testing.T) *App {
 
 // TestMain sets up and tears down the shared test environment.
 func TestMain(m *testing.M) {
-	// Skip container setup if TESTCONTAINERS is not set.
 	if os.Getenv("TESTCONTAINERS") != "1" {
 		os.Exit(m.Run())
 	}
 
-	// Create context
-	testContext = context.Background()
+	ctx := context.Background()
 
-	// Create container request
 	req := testcontainers.ContainerRequest{
 		Image:        "postgres:18-alpine",
 		ExposedPorts: []string{"5432/tcp"},
@@ -53,8 +46,7 @@ func TestMain(m *testing.M) {
 		),
 	}
 
-	// Start container
-	pgContainer, err := testcontainers.GenericContainer(testContext, testcontainers.GenericContainerRequest{
+	pgContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
 	})
@@ -62,52 +54,42 @@ func TestMain(m *testing.M) {
 		fmt.Printf("Failed to start container: %s\n", err)
 		os.Exit(1)
 	}
-	testContainer = pgContainer
 
-	// Get the mapped port
-	port, err := pgContainer.MappedPort(testContext, "5432")
+	terminate := func() {
+		if err := pgContainer.Terminate(ctx); err != nil {
+			fmt.Printf("Error terminating container: %s\n", err)
+		}
+	}
+
+	port, err := pgContainer.MappedPort(ctx, "5432")
 	if err != nil {
 		fmt.Printf("Failed to get port: %s\n", err)
-		terminateContainer()
+		terminate()
 		os.Exit(1)
 	}
 
-	// Get the host
-	host, err := pgContainer.Host(testContext)
+	host, err := pgContainer.Host(ctx)
 	if err != nil {
 		fmt.Printf("Failed to get host: %s\n", err)
-		terminateContainer()
+		terminate()
 		os.Exit(1)
 	}
 
-	// Construct DSN
 	dsn := fmt.Sprintf("postgres://testuser:testpass@%s:%s/testdb?sslmode=disable", host, port.Port())
-	fmt.Println("Using test DSN: ", dsn)
+	fmt.Println("Using test DSN:", dsn)
 
-	// Initialize the database connection pool
 	testPool, err = openDB(dsn)
 	if err != nil {
 		fmt.Printf("Failed to initialize database: %s\n", err)
-		terminateContainer()
+		terminate()
 		os.Exit(1)
 	}
 
-	// Run the tests
 	code := m.Run()
 
-	// Clean up
 	testPool.Close()
-	terminateContainer()
-
-	// Exit with the appropriate code
+	terminate()
 	os.Exit(code)
-}
-
-// Helper function to terminate the container.
-func terminateContainer() {
-	if err := testContainer.Terminate(testContext); err != nil {
-		fmt.Printf("Error terminating container: %s\n", err)
-	}
 }
 
 // skipIfNoTestcontainers skips the test if testcontainers are not enabled.

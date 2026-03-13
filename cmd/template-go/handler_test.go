@@ -82,7 +82,7 @@ func TestHealthEndpoint(t *testing.T) {
 	app := testApp(t)
 	server := setupServer(app)
 
-	req := httptest.NewRequest(http.MethodGet, "/health", http.NoBody)
+	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health", http.NoBody)
 	rec := httptest.NewRecorder()
 
 	server.Handler.ServeHTTP(rec, req)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -34,7 +33,6 @@ func TestLoadConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("SERVICE_DSN", "")
-			_ = os.Unsetenv("SERVICE_DSN")
 
 			for k, v := range tt.envVars {
 				t.Setenv(k, v)
