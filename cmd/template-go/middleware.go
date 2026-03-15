@@ -23,7 +23,7 @@ func (rw *responseWriter) Unwrap() http.ResponseWriter {
 	return rw.ResponseWriter
 }
 
-// Logger middleware logs HTTP requests.
+// Logger logs HTTP requests with level based on status code.
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Exclude healthchecks from logging
@@ -36,7 +36,6 @@ func Logger(next http.Handler) http.Handler {
 		rw := &responseWriter{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(rw, r)
 
-		// Choose log level based on status code
 		level := slog.LevelInfo
 		switch {
 		case rw.status >= 500:
@@ -45,17 +44,17 @@ func Logger(next http.Handler) http.Handler {
 			level = slog.LevelWarn
 		}
 
-		slog.Log(r.Context(), level, "request",
-			"method", r.Method,
-			"url", r.URL,
-			"useragent", r.UserAgent(),
-			"status", rw.status,
-			"duration", time.Since(start),
+		slog.LogAttrs(r.Context(), level, "request",
+			slog.String("method", r.Method),
+			slog.String("url", r.URL.RequestURI()),
+			slog.String("useragent", r.UserAgent()),
+			slog.Int("status", rw.status),
+			slog.Duration("duration", time.Since(start)),
 		)
 	})
 }
 
-// Recoverer middleware recovers from panics and logs the error.
+// Recoverer recovers from panics and returns 500.
 func Recoverer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {

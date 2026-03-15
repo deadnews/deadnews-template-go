@@ -13,7 +13,7 @@ func TestGetDatabaseInfo(t *testing.T) {
 	skipIfNoTestcontainers(t)
 
 	t.Run("returns error on context timeout", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
+		ctx, cancel := context.WithTimeout(t.Context(), 1*time.Nanosecond)
 		defer cancel()
 		time.Sleep(1 * time.Millisecond)
 
@@ -22,7 +22,7 @@ func TestGetDatabaseInfo(t *testing.T) {
 	})
 
 	t.Run("returns error on cancelled context", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(t.Context())
 		cancel()
 
 		_, err := getDatabaseInfo(ctx, testPool)
@@ -30,7 +30,7 @@ func TestGetDatabaseInfo(t *testing.T) {
 	})
 
 	t.Run("returns database info with valid connection", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
 		defer cancel()
 
 		dbInfo, err := getDatabaseInfo(ctx, testPool)
@@ -51,5 +51,15 @@ func TestOpenDB(t *testing.T) {
 	t.Run("returns error for unreachable host", func(t *testing.T) {
 		_, err := openDB("postgres://user:pass@127.0.0.1:59999/db?sslmode=disable&connect_timeout=1")
 		require.Error(t, err)
+	})
+
+	t.Run("success with valid DSN", func(t *testing.T) {
+		skipIfNoTestcontainers(t)
+
+		pool, err := openDB(testDSN)
+		require.NoError(t, err)
+		require.NotNil(t, pool)
+
+		pool.Close()
 	})
 }

@@ -1,6 +1,6 @@
 module github.com/deadnews/deadnews-template-go/v2
 
-go 1.25.0
+go 1.26
 
 require (
 	github.com/jackc/pgx/v5 v5.8.0

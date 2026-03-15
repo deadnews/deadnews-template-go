@@ -17,8 +17,16 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - name: Show local Go version
+        run: |
+          which go || true
+          GOTOOLCHAIN=local /usr/bin/go version || true
+          GOTOOLCHAIN=local go version || true
+          /usr/bin/go version || true
+          go version || true
+
       - name: Run prek
-        uses: j178/prek-action@0bb87d7f00b0c99306c8bcb8b8beba1eb581c037 # v1.1.1
+        uses: j178/prek-action@v2.0.0-beta.2
 
   test:
     name: Test

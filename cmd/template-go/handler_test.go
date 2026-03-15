@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,7 +17,7 @@ func TestHandleDatabaseTest_Success(t *testing.T) {
 
 	app := testApp(t)
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/test", http.NoBody)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "/test", http.NoBody)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
@@ -41,8 +42,7 @@ func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 	ts := httptest.NewServer(server.Handler)
 	defer ts.Close()
 
-	ctx := context.Background()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL+"/test", http.NoBody)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, ts.URL+"/test", http.NoBody)
 	require.NoError(t, err)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -66,7 +66,7 @@ func TestHandleDatabaseTestContextCancellation(t *testing.T) {
 	app := testApp(t)
 
 	// Create a cancelled context
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/test", http.NoBody)
@@ -82,10 +82,33 @@ func TestHealthEndpoint(t *testing.T) {
 	app := testApp(t)
 	server := setupServer(app)
 
-	req := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/health", http.NoBody)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/health", http.NoBody)
 	rec := httptest.NewRecorder()
 
 	server.Handler.ServeHTTP(rec, req)
 
 	assert.Equal(t, http.StatusOK, rec.Code)
+}
+
+// errorWriter is a ResponseWriter that fails on Write.
+type errorWriter struct {
+	http.ResponseWriter
+}
+
+func (ew *errorWriter) Write(_ []byte) (int, error) {
+	return 0, errors.New("write failed")
+}
+
+func TestHandleDatabaseTest_JSONEncodeError(t *testing.T) {
+	skipIfNoTestcontainers(t)
+
+	app := testApp(t)
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "/test", http.NoBody)
+	require.NoError(t, err)
+
+	rec := httptest.NewRecorder()
+	ew := &errorWriter{ResponseWriter: rec}
+
+	app.handleDatabaseTest(ew, req)
 }

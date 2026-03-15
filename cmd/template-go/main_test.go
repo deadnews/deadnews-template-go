@@ -16,7 +16,10 @@ import (
 )
 
 // Global variables for test environment.
-var testPool *pgxpool.Pool
+var (
+	testPool *pgxpool.Pool
+	testDSN  string
+)
 
 // testApp creates an App using the shared test pool.
 func testApp(t *testing.T) *App {
@@ -75,10 +78,10 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	dsn := fmt.Sprintf("postgres://testuser:testpass@%s:%s/testdb?sslmode=disable", host, port.Port())
-	fmt.Println("Using test DSN:", dsn)
+	testDSN = fmt.Sprintf("postgres://testuser:testpass@%s:%s/testdb?sslmode=disable", host, port.Port())
+	fmt.Println("Using test DSN:", testDSN)
 
-	testPool, err = openDB(dsn)
+	testPool, err = openDB(testDSN)
 	if err != nil {
 		fmt.Printf("Failed to initialize database: %s\n", err)
 		terminate()
@@ -113,7 +116,7 @@ func TestSetupServerNonExistentRoute(t *testing.T) {
 	app := testApp(t)
 	server := setupServer(app)
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/nonexistent", http.NoBody)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "/nonexistent", http.NoBody)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
@@ -140,7 +143,7 @@ func TestSetupServerMethodNotAllowed(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req, err := http.NewRequestWithContext(context.Background(), tt.method, tt.path, http.NoBody)
+			req, err := http.NewRequestWithContext(t.Context(), tt.method, tt.path, http.NoBody)
 			require.NoError(t, err)
 
 			rr := httptest.NewRecorder()
