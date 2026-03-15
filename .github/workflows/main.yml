@@ -25,8 +25,15 @@ jobs:
           /usr/bin/go version || true
           go version || true
 
-      - name: Run prek
-        uses: j178/prek-action@v2.0.0-beta.2
+      - name: Build forked prek
+        run: |
+          git clone https://github.com/deadnews/prek /tmp/prek
+          cd /tmp/prek
+          cargo build --release -p prek
+          echo "/tmp/prek/target/release" >> "$GITHUB_PATH"
+
+      - name: Run forked prek
+        run: prek run --show-diff-on-failure --color=always --all-files
 
   test:
     name: Test
