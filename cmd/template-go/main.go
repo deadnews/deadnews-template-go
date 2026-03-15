@@ -17,7 +17,7 @@ func main() {
 
 	cfg, err := LoadConfig()
 	if err != nil {
-		slog.Error("Failed to load config", "error", err)
+		slog.Error("Failed to load configuration", "error", err)
 		os.Exit(1)
 	}
 
@@ -60,7 +60,7 @@ func setupServer(app *App) *http.Server {
 	mux.HandleFunc("GET /health", handleHealth)
 	mux.HandleFunc("GET /test", app.handleDatabaseTest)
 
-	handler := Recoverer(Logger(mux))
+	handler := Logger(Recoverer(mux))
 
 	return &http.Server{
 		Addr:         ":8000",
