@@ -17,9 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Show default Go version
+      - name: Show local Go version
         run: |
           which go || true
+          GOTOOLCHAIN=local /usr/bin/go version || true
+          GOTOOLCHAIN=local go version || true
           /usr/bin/go version || true
           go version || true
 
