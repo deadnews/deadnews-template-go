@@ -17,23 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Show local Go version
-        run: |
-          which go || true
-          GOTOOLCHAIN=local /usr/bin/go version || true
-          GOTOOLCHAIN=local go version || true
-          /usr/bin/go version || true
-          go version || true
-
-      - name: Build forked prek
-        run: |
-          git clone https://github.com/deadnews/prek /tmp/prek
-          cd /tmp/prek
-          cargo build --release -p prek
-          echo "/tmp/prek/target/release" >> "$GITHUB_PATH"
-
-      - name: Run forked prek
-        run: prek run --show-diff-on-failure --color=always --all-files
+      - name: Run prek
+        uses: j178/prek-action@0bb87d7f00b0c99306c8bcb8b8beba1eb581c037 # v1.1.1
 
   test:
     name: Test
