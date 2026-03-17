@@ -24,7 +24,6 @@ func (rw *responseWriter) Unwrap() http.ResponseWriter {
 // Logger logs requests with level based on status code.
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Exclude healthchecks from logging
 		if r.URL.Path == "/health" {
 			next.ServeHTTP(w, r)
 			return
