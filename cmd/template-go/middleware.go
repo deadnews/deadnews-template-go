@@ -6,24 +6,22 @@ import (
 	"time"
 )
 
-// responseWriter wraps http.ResponseWriter to record the status code.
+// responseWriter captures the HTTP status code.
 type responseWriter struct {
 	http.ResponseWriter
 	status int
 }
 
-// WriteHeader records the status code.
 func (rw *responseWriter) WriteHeader(code int) {
 	rw.status = code
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-// Unwrap returns the wrapped ResponseWriter.
 func (rw *responseWriter) Unwrap() http.ResponseWriter {
 	return rw.ResponseWriter
 }
 
-// Logger logs HTTP requests with level based on status code.
+// Logger logs requests with level based on status code.
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Exclude healthchecks from logging

@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-// Config holds application configuration from environment variables.
+// Config holds application configuration.
 type Config struct {
 	DSN string
 }

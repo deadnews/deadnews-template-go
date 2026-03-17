@@ -59,13 +59,11 @@ func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 	assert.NotEmpty(t, response.Version)
 }
 
-// TestHandleDatabaseTestContextCancellation tests context cancellation.
 func TestHandleDatabaseTestContextCancellation(t *testing.T) {
 	skipIfNoTestcontainers(t)
 
 	app := testApp(t)
 
-	// Create a cancelled context
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
@@ -90,7 +88,7 @@ func TestHealthEndpoint(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rec.Code)
 }
 
-// errorWriter is a ResponseWriter that fails on Write.
+// errorWriter always fails on Write, for testing encode errors.
 type errorWriter struct {
 	http.ResponseWriter
 }

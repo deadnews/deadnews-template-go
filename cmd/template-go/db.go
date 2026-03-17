@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// openDB opens and configures a database connection pool.
+// openDB opens a database connection pool.
 func openDB(dsn string) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
@@ -42,7 +42,7 @@ type DatabaseInfo struct {
 	Version  string `json:"version"`
 }
 
-// getDatabaseInfo queries the database and returns current database name and version.
+// getDatabaseInfo queries the database for its name and version.
 func getDatabaseInfo(ctx context.Context, db *pgxpool.Pool) (*DatabaseInfo, error) {
 	var info DatabaseInfo
 

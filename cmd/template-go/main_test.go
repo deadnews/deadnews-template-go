@@ -15,19 +15,16 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-// Global variables for test environment.
 var (
 	testPool *pgxpool.Pool
 	testDSN  string
 )
 
-// testApp creates an App using the shared test pool.
 func testApp(t *testing.T) *App {
 	t.Helper()
 	return &App{DB: testPool}
 }
 
-// TestMain sets up and tears down the shared test environment.
 func TestMain(m *testing.M) {
 	if os.Getenv("TESTCONTAINERS") != "1" {
 		os.Exit(m.Run())
@@ -95,7 +92,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// skipIfNoTestcontainers skips the test if testcontainers are not enabled.
 func skipIfNoTestcontainers(t *testing.T) {
 	t.Helper()
 	if os.Getenv("TESTCONTAINERS") != "1" {
@@ -111,7 +107,6 @@ func TestSetupServer(t *testing.T) {
 	assert.NotNil(t, server.Handler)
 }
 
-// TestSetupServerNonExistentRoute tests 404 handling.
 func TestSetupServerNonExistentRoute(t *testing.T) {
 	app := testApp(t)
 	server := setupServer(app)
@@ -125,7 +120,6 @@ func TestSetupServerNonExistentRoute(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 }
 
-// TestSetupServerMethodNotAllowed tests that wrong HTTP methods are rejected.
 func TestSetupServerMethodNotAllowed(t *testing.T) {
 	app := testApp(t)
 	server := setupServer(app)

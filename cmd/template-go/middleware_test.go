@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// captureLog redirects slog output to a buffer for the duration of the test.
+// captureLog redirects slog to a buffer for the test duration.
 func captureLog(t *testing.T, opts *slog.HandlerOptions) *bytes.Buffer {
 	t.Helper()
 
