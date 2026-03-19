@@ -1,15 +1,12 @@
 .PHONY: all clean default run build update up check pc test
 
-TESTCONTAINERS ?= 1
-
 default: check
 
-check: TESTCONTAINERS = 1
 check: pc test
 pc:
 	prek run -a
 test:
-	TESTCONTAINERS=$(TESTCONTAINERS) go test -v -race -covermode=atomic -coverprofile=coverage.txt ./...
+	TESTCONTAINERS=1 go test -v -race -covermode=atomic -coverprofile=coverage.txt ./...
 
 update: up up-ci
 up:

@@ -22,14 +22,14 @@ changelog:
   filters:
     exclude:
       - ^chore
-      - ^test"
+      - ^test
       - ^(ci|build|chore)\(deps.*\)
 
 nfpms:
   - id: "{{ .ProjectName }}"
     description: Go Project Template
     homepage: "{{ .GitURL }}"
-    maintainer: DeadNews <deadnewsgit@gmail.com>
+    maintainer: deadnews <deadnewsgit@gmail.com>
     formats:
       - deb
     bindir: /usr/bin
