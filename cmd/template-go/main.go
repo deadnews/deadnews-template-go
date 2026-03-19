@@ -60,11 +60,9 @@ func setupServer(app *App) *http.Server {
 	mux.HandleFunc("GET /health", handleHealth)
 	mux.HandleFunc("GET /test", app.handleDatabaseTest)
 
-	handler := Logger(Recoverer(mux))
-
 	return &http.Server{
 		Addr:         ":8000",
-		Handler:      handler,
+		Handler:      Logger(Recoverer(mux)),
 		IdleTimeout:  60 * time.Second,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
