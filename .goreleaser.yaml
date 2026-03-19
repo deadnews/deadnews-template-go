@@ -22,7 +22,7 @@ changelog:
   filters:
     exclude:
       - ^chore
-      - ^test"
+      - ^test
       - ^(ci|build|chore)\(deps.*\)
 
 nfpms:
