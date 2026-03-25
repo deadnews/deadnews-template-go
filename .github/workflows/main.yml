@@ -90,7 +90,7 @@ jobs:
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
 
       - name: Build wheels
-        run: uvx --from "go-to-wheel @ git+https://github.com/nikaro/go-to-wheel@feat/go-cmd" go-to-wheel . --package-path ./cmd/template-go
+        run: uvx --from "go-to-wheel @ git+https://github.com/nikaro/go-to-wheel@feat/go-cmd" go-to-wheel . --package-path ./cmd/template-go --version "${GITHUB_REF_NAME}" --readme ./README.md
 
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
