@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.2.2-alpha.1](https://github.com/deadnews/deadnews-template-go/compare/v2.2.1...v2.2.2-alpha.1) - 2026-03-25
+## [2.2.2-alpha.2](https://github.com/deadnews/deadnews-template-go/compare/v2.2.1...v2.2.2-alpha.2) - 2026-03-25
 
 ### Refactor
 
@@ -15,6 +15,7 @@
 
 ### Chores
 
+- _(github)_ add `pypi` deploy job - ([4f8023e](https://github.com/deadnews/deadnews-template-go/commit/4f8023eeec9ad934a42501d658b88429ad392a89))
 - _(github)_ add pypi deploy job - ([956ff2c](https://github.com/deadnews/deadnews-template-go/commit/956ff2cd7caba5e1b11f4070c5acf98de2db159e))
 - _(github)_ replace `codecov` with `action-coverage-badge` - ([9aa7dbf](https://github.com/deadnews/deadnews-template-go/commit/9aa7dbfa474aa2ecde8520f7022534c95fe6ab00))
 - _(prek)_ use pinned tags - ([5cee9e2](https://github.com/deadnews/deadnews-template-go/commit/5cee9e276d02eec53505ae3e325d26e6156cb3c0))
