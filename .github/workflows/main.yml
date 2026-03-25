@@ -18,10 +18,12 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Run prek
-        uses: j178/prek-action@0bb87d7f00b0c99306c8bcb8b8beba1eb581c037 # v1.1.1
+        uses: j178/prek-action@79f765515bd648eb4d6bb1b17277b7cb22cb6468 # v2.0.0
 
   test:
     name: Test
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -37,9 +39,11 @@ jobs:
       - name: Run tests
         run: make test
 
-      - name: Upload coverage to Codecov
+      - uses: deadnews/action-coverage-badge@351262884436f6ff0e47d5ec6c361812f6ebed79 # main
         if: matrix.os == 'ubuntu-latest'
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        with:
+          file: coverage.txt
+          type: go
 
   goreleaser:
     name: GoReleaser

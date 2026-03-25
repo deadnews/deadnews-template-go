@@ -10,5 +10,23 @@
 ## Installation
 
 ```sh
-docker pull ghcr.io/deadnews/deadnews-template-go:latest
+docker pull ghcr.io/deadnews/deadnews-template-go
+```
+
+## Endpoints
+
+### GET /health
+
+Health check endpoint.
+
+```sh
+curl -X GET http://127.0.0.1:8000/health
+```
+
+### GET /test
+
+Returns database name and version as JSON.
+
+```sh
+curl -X GET http://127.0.0.1:8000/test
 ```
