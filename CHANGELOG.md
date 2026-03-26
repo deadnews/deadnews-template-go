@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.2.2-alpha.4](https://github.com/deadnews/deadnews-template-go/compare/v2.2.1...v2.2.2-alpha.4) - 2026-03-26
+## [2.2.2](https://github.com/deadnews/deadnews-template-go/compare/v2.2.1...v2.2.2) - 2026-03-26
 
 ### Refactor
 
@@ -15,11 +15,7 @@
 
 ### Chores
 
-- _(github)_ add `pypi` deploy job - ([6e3bf27](https://github.com/deadnews/deadnews-template-go/commit/6e3bf27d1d618d5f8bdcdeced5ca394b15794a6c))
-- _(github)_ add `pypi` deploy job - ([7a391d9](https://github.com/deadnews/deadnews-template-go/commit/7a391d9d211add985b960da2314f9ec1e2e6ec84))
-- _(github)_ add `pypi` deploy job - ([4f8023e](https://github.com/deadnews/deadnews-template-go/commit/4f8023eeec9ad934a42501d658b88429ad392a89))
-- _(github)_ add pypi deploy job - ([956ff2c](https://github.com/deadnews/deadnews-template-go/commit/956ff2cd7caba5e1b11f4070c5acf98de2db159e))
-- _(github)_ replace `codecov` with `action-coverage-badge` - ([9aa7dbf](https://github.com/deadnews/deadnews-template-go/commit/9aa7dbfa474aa2ecde8520f7022534c95fe6ab00))
+- _(github)_ replace `codecov` with `coverage-badge-action` ([#168](https://github.com/deadnews/deadnews-template-go/issues/168)) - ([f42b134](https://github.com/deadnews/deadnews-template-go/commit/f42b13433b9b0ecae09cb71145b08a78ead3401a))
 - _(prek)_ use pinned tags - ([5cee9e2](https://github.com/deadnews/deadnews-template-go/commit/5cee9e276d02eec53505ae3e325d26e6156cb3c0))
 - _(prek)_ use pinned tags - ([b0d5b7b](https://github.com/deadnews/deadnews-template-go/commit/b0d5b7ba76019b8967ff4c4b7010e163185fc282))
 - _(prek)_ use pinned revisions - ([d0ff25c](https://github.com/deadnews/deadnews-template-go/commit/d0ff25cf742d2def528b1d6df9ced93aa8546c81))
