@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.2.2-alpha4](https://github.com/deadnews/deadnews-template-go/compare/v2.2.1...v2.2.2-alpha4) - 2026-03-26
+## [2.2.2-alpha.4](https://github.com/deadnews/deadnews-template-go/compare/v2.2.1...v2.2.2-alpha.4) - 2026-03-26
 
 ### Refactor
 
