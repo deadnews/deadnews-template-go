@@ -1,23 +1,34 @@
 # Changelog
 
-## [2.2.2-alpha.0](https://github.com/deadnews/deadnews-template-go/compare/v2.2.1...v2.2.2-alpha.0) - 2026-02-22
+## [2.2.2-alpha.4](https://github.com/deadnews/deadnews-template-go/compare/v2.2.1...v2.2.2-alpha.4) - 2026-03-26
 
 ### Refactor
 
+- _(db)_ restructure database info handling - ([0a5fea6](https://github.com/deadnews/deadnews-template-go/commit/0a5fea69e436a9e5d4766f950ec70a6160c6f58a))
+- improve logging ([#167](https://github.com/deadnews/deadnews-template-go/issues/167)) - ([8f1aa09](https://github.com/deadnews/deadnews-template-go/commit/8f1aa09edea9809af8e609fced7a9b413e615a07))
 - update application structure ([#162](https://github.com/deadnews/deadnews-template-go/issues/162)) - ([889d636](https://github.com/deadnews/deadnews-template-go/commit/889d63679d1bb79b42cb93ce24041f322ae6055d))
 
 ### Build
 
-- _(docker)_ add `GOFLAGS` - ([5996c0d](https://github.com/deadnews/deadnews-template-go/commit/5996c0dc00052c138cde9644b9e6abe687716d9b))
-- _(docker)_ add `GOFLAGS` - ([4102990](https://github.com/deadnews/deadnews-template-go/commit/410299080c2f480175337e013de25b83049ecc26))
+- _(docker)_ add `GOFLAGS` ([#164](https://github.com/deadnews/deadnews-template-go/issues/164)) - ([ffda977](https://github.com/deadnews/deadnews-template-go/commit/ffda9773f10b491cde96a5b50f76d4cfe8f04fc3))
+- _(dockerfile)_ simplify ldflags - ([7b92ccc](https://github.com/deadnews/deadnews-template-go/commit/7b92ccca7decf36a13db0fe7c86924b0c22a6dce))
 
 ### Chores
 
+- _(github)_ add `pypi` deploy job - ([6e3bf27](https://github.com/deadnews/deadnews-template-go/commit/6e3bf27d1d618d5f8bdcdeced5ca394b15794a6c))
+- _(github)_ add `pypi` deploy job - ([7a391d9](https://github.com/deadnews/deadnews-template-go/commit/7a391d9d211add985b960da2314f9ec1e2e6ec84))
+- _(github)_ add `pypi` deploy job - ([4f8023e](https://github.com/deadnews/deadnews-template-go/commit/4f8023eeec9ad934a42501d658b88429ad392a89))
+- _(github)_ add pypi deploy job - ([956ff2c](https://github.com/deadnews/deadnews-template-go/commit/956ff2cd7caba5e1b11f4070c5acf98de2db159e))
+- _(github)_ replace `codecov` with `action-coverage-badge` - ([9aa7dbf](https://github.com/deadnews/deadnews-template-go/commit/9aa7dbfa474aa2ecde8520f7022534c95fe6ab00))
 - _(prek)_ use pinned tags - ([5cee9e2](https://github.com/deadnews/deadnews-template-go/commit/5cee9e276d02eec53505ae3e325d26e6156cb3c0))
 - _(prek)_ use pinned tags - ([b0d5b7b](https://github.com/deadnews/deadnews-template-go/commit/b0d5b7ba76019b8967ff4c4b7010e163185fc282))
 - _(prek)_ use pinned revisions - ([d0ff25c](https://github.com/deadnews/deadnews-template-go/commit/d0ff25cf742d2def528b1d6df9ced93aa8546c81))
 - _(prek)_ use pinned revisions - ([bf7964d](https://github.com/deadnews/deadnews-template-go/commit/bf7964d26e508a9a86c0b894b1d3f0959441efc7))
 - move handlers to separate file ([#159](https://github.com/deadnews/deadnews-template-go/issues/159)) - ([4e61453](https://github.com/deadnews/deadnews-template-go/commit/4e614533c164f7c32c47d02af84384ba8a44ee7b))
+
+### Dependencies
+
+- update deps - ([cf0ad99](https://github.com/deadnews/deadnews-template-go/commit/cf0ad9900831c92b17560659e345bb141f59666d))
 
 ## [2.2.1](https://github.com/deadnews/deadnews-template-go/compare/v2.2.0...v2.2.1) - 2026-01-10
 
