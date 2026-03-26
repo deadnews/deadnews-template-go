@@ -39,37 +39,12 @@ jobs:
       - name: Run tests
         run: make test
 
-      - uses: deadnews/action-coverage-badge@351262884436f6ff0e47d5ec6c361812f6ebed79 # main
-        if: matrix.os == 'ubuntu-latest'
+      - name: Upload coverage
+        uses: deadnews/coverage-badge-action@bc4aaf332f25c52d1e8dd21ef9ed0b2337ad39af # v1.0.0
+        if: github.event_name == 'push' && matrix.os == 'ubuntu-latest'
         with:
           file: coverage.txt
           type: go
-
-  goreleaser:
-    name: GoReleaser
-    if: github.ref_type == 'tag'
-    needs: [prek, test]
-    environment: github-releases
-    permissions:
-      contents: write
-    env:
-      DRAFT: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
-        with:
-          go-version-file: go.mod
-
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@ec59f474b9834571250b370d4735c50f8e2d1e29 # v7.0.0
-        with:
-          args: release --clean --draft=${{ env.DRAFT }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   pypi-deploy:
     name: Release to PyPI
@@ -86,11 +61,36 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
-
       - name: Build wheels
-        run: uvx --from "go-to-wheel @ git+https://github.com/nikaro/go-to-wheel@feat/go-cmd" go-to-wheel . --package-path ./cmd/template-go --version "${GITHUB_REF_NAME}" --readme ./README.md
+        uses: deadnews/go-wheel-action@bd5a25cf82ab01b8805626a2fe69d9f20bd7aa3e # v1.0.0
+        with:
+          package: ./cmd/template-go
 
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+
+  goreleaser:
+    name: GoReleaser
+    if: github.ref_type == 'tag'
+    needs: [prek, test]
+    environment: github-releases
+    permissions:
+      contents: write
+    env:
+      PRERELEASE: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: go.mod
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@ec59f474b9834571250b370d4735c50f8e2d1e29 # v7.0.0
+        with:
+          args: release --clean --draft=${{ env.PRERELEASE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
