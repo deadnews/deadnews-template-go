@@ -10,8 +10,16 @@
 
 ## Installation
 
+Docker
+
 ```sh
 docker pull ghcr.io/deadnews/deadnews-template-go
+```
+
+PyPI
+
+```sh
+uv tool install deadnews-template-go
 ```
 
 ## Endpoints
