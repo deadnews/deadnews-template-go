@@ -26,35 +26,35 @@ func main() {
 		slog.Error("Failed to initialize application", "error", err)
 		os.Exit(1)
 	}
-
-	server := setupServer(app)
+	server := app.newServer()
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	go func() {
-		<-ctx.Done()
-		slog.Info("Shutdown signal received")
-
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		if err := server.Shutdown(shutdownCtx); err != nil {
-			slog.Error("Server shutdown error", "error", err)
-		} else {
-			slog.Info("Server shutdown completed")
+		slog.Info("Starting server", "address", ":8000")
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("Server error", "error", err)
+			stop()
 		}
-
-		app.Close()
 	}()
 
-	slog.Info("Starting server", "address", ":8000")
-	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		slog.Error("Server error", "error", err)
+	<-ctx.Done()
+	slog.Info("Shutdown signal received")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		slog.Error("Server shutdown error", "error", err)
+	} else {
+		slog.Info("Server shutdown completed")
 	}
+
+	app.Close()
 }
 
-func setupServer(app *App) *http.Server {
+func (app *App) newServer() *http.Server {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health", handleHealth)

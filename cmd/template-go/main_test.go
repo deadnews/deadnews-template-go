@@ -99,17 +99,17 @@ func skipIfNoTestcontainers(t *testing.T) {
 	}
 }
 
-func TestSetupServer(t *testing.T) {
+func TestNewServer(t *testing.T) {
 	app := testApp(t)
-	server := setupServer(app)
+	server := app.newServer()
 
 	assert.NotNil(t, server)
 	assert.NotNil(t, server.Handler)
 }
 
-func TestSetupServerNonExistentRoute(t *testing.T) {
+func TestNewServerNonExistentRoute(t *testing.T) {
 	app := testApp(t)
-	server := setupServer(app)
+	server := app.newServer()
 
 	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "/nonexistent", http.NoBody)
 	require.NoError(t, err)
@@ -120,9 +120,9 @@ func TestSetupServerNonExistentRoute(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 }
 
-func TestSetupServerMethodNotAllowed(t *testing.T) {
+func TestNewServerMethodNotAllowed(t *testing.T) {
 	app := testApp(t)
-	server := setupServer(app)
+	server := app.newServer()
 
 	tests := []struct {
 		name   string

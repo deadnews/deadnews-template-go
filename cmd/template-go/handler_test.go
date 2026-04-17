@@ -38,7 +38,7 @@ func TestHandleDatabaseTest_ViaServer_Success(t *testing.T) {
 	skipIfNoTestcontainers(t)
 
 	app := testApp(t)
-	server := setupServer(app)
+	server := app.newServer()
 	ts := httptest.NewServer(server.Handler)
 	defer ts.Close()
 
@@ -78,7 +78,7 @@ func TestHandleDatabaseTestContextCancellation(t *testing.T) {
 
 func TestHealthEndpoint(t *testing.T) {
 	app := testApp(t)
-	server := setupServer(app)
+	server := app.newServer()
 
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/health", http.NoBody)
 	rec := httptest.NewRecorder()

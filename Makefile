@@ -15,7 +15,8 @@ up:
 	go mod verify
 up-ci:
 	prek auto-update --freeze
-	pinact run -update
+	pinact run --update
+	pindock run --update Dockerfile
 
 run:
 	SERVICE_DSN=test go run ./cmd/template-go
