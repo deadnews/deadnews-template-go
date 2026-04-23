@@ -32,7 +32,7 @@ func main() {
 	defer stop()
 
 	go func() {
-		slog.Info("Starting server", "address", ":8000")
+		slog.Info("Starting server", "address", server.Addr)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("Server error", "error", err)
 			stop()
