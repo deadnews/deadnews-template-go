@@ -7,6 +7,8 @@ linters:
     - asciicheck
     - bidichk
     - bodyclose
+    - containedctx
+    - contextcheck
     - copyloopvar
     - dogsled
     - dupl
@@ -41,6 +43,7 @@ linters:
     - nakedret
     - nestif
     - nilerr
+    - nilnesserr
     - nilnil
     - noctx
     - nolintlint
@@ -48,6 +51,7 @@ linters:
     - prealloc
     - predeclared
     - promlinter
+    - reassign
     - recvcheck
     - revive
     - rowserrcheck
@@ -55,6 +59,7 @@ linters:
     - sqlclosecheck
     - staticcheck
     - testifylint
+    - thelper
     - tparallel
     - unconvert
     - unparam
@@ -65,30 +70,35 @@ linters:
     - whitespace
     - wrapcheck
   settings:
-    gosec:
-      excludes:
-        - G701
-        - G704
-        - G706
+    goconst:
+      ignore-tests: true
+      min-occurrences: 5
     gocritic:
       enable-all: true
-      disabled-checks:
-        - paramTypeCombine
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment
+        - shadow
+    nolintlint:
+      require-specific: true
   exclusions:
     rules:
       - source: "^\\s*defer\\s+"
         linters:
           - errcheck
       - path: _test\.go
+        text: unusedwrite
+        linters:
+          - govet
+      - path: _test\.go
         linters:
           - errchkjson
           - gocognit
-          - goconst
           - godoclint
           - gosec
 
 formatters:
   enable:
-    - gofmt
     - gofumpt
     - goimports

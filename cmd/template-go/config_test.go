@@ -25,6 +25,7 @@ func TestLoadConfig(t *testing.T) {
 				"SERVICE_DSN": "postgres://user:pass@localhost:5432/db",
 			},
 			check: func(t *testing.T, cfg *Config) {
+				t.Helper()
 				assert.Equal(t, "postgres://user:pass@localhost:5432/db", cfg.DSN)
 			},
 		},
